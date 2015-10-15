@@ -1,0 +1,6 @@
+region: eu-west-1
+stacks:
+  crassus:
+    template-url: templates/crassus.yaml
+    parameters:
+      zipFile: crassus.zip
