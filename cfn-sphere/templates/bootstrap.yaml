@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: crassus distribution infrastructure
+Parameters:
+  bucketName:
+    Description: Name of the S3 bucket where the latest crassus software can be downloaded from.
+    Default: is24-crassus
+    Type: String
+Resources:
+  crassusBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: bucketName
+      AccessControl: PublicRead
