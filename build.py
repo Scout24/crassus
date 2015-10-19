@@ -32,11 +32,17 @@ def set_properties(project):
 @init(environments='teamcity')
 def set_properties_for_teamcity_builds(project):
     import os
-
     project.set_property('teamcity_output', True)
-    project.version = '%s-%s' % (project.version, os.environ.get('BUILD_NUMBER', 0))
-    project.default_task = ['clean', 'install_build_dependencies', 'publish', 'package_lambda_code']
-    project.set_property('install_dependencies_index_url', os.environ.get('PYPIPROXY_URL'))
+    project.version = '%s-%s' % (project.version,
+                                 os.environ.get('BUILD_NUMBER', 0))
+    project.default_task = [
+        'clean',
+        'install_build_dependencies',
+        'publish',
+        'package_lambda_code'
+    ]
+    project.set_property('install_dependencies_index_url',
+                         os.environ.get('PYPIPROXY_URL'))
 
 
 @task
