@@ -6,9 +6,15 @@ use_plugin("python.install_dependencies")
 use_plugin("python.flake8")
 #use_plugin("python.coverage")
 
-name = "crassus"
-default_task = "publish"
+name = 'crassus'
+summary = 'AWS lambda function for deployment automation'
+description = """
+    AWS lambda function for deployment automation, which makes use of
+    sns/sqs for trigger and backchannel."""
+license = 'Apache License 2.0'
+url = 'https://github.com/ImmobilienScout24/crassus'
 version = 0.1
+default_task = ['clean', 'analyze', 'package']
 
 
 @init
