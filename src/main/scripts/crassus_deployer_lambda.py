@@ -1,5 +1,6 @@
 import boto3
 import logging
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger('crassus-deployer')
 logger.setLevel(logging.DEBUG)
@@ -14,8 +15,7 @@ cloudformation = boto3.resource('cloudformation')
 # TODOS
 # message format from the sns triggerin the lambda
 # validate parameters
-# check if stack exists
-# check if stack is updateable
+
 # check if all parameters must be present
 # what about no echo parameters?
 # register a sqs for stack update output
@@ -23,26 +23,37 @@ cloudformation = boto3.resource('cloudformation')
 
 def handler (event, context):
     cfn_update_parameters = parse_event(event)
-    #import pdb; pdb.set_trace()
     logger.debug('Parsed parameters: {}'.format(cfn_update_parameters))
+    stack_name = cfn_update_parameters["stack_name"]
+    stack = cloudformation.Stack(stack_name)
 
-    stack = find_stack(cfn_update_parameters["stack_name"])
-    logger.debug('Found stack: {}'.format(stack.timeout_in_minutes))
+    try:
+        stack.load()
+    except ClientError as error:
+        logger.error('Did not found stack: {}'.format(stack_name))
+        logger.error(error.message)
+        return False
 
-    #if not stack -> return error?
+    logger.debug('Found stack: {}'.format(stack))
 
     if not validate_parameters(cfn_update_parameters):
         raise Exception('Invalid parameters')
 
+
     #do all parameters be need to specified?
-    stack.update(UsePreviousTemplate=True,
-                 Parameters=[
-                     {
-                         'ParameterKey': cfn_update_parameters["parameter_name"],
-                         'ParameterValue': cfn_update_parameters["parameter_value"],
-                         'UsePreviousValue': False
-                     },
-                     ],)
+    try:
+        stack.update(UsePreviousTemplate=True,
+                     Parameters=[
+                         {
+                             'ParameterKey': cfn_update_parameters["parameter_name"],
+                             'ParameterValue': cfn_update_parameters["parameter_value"],
+                             'UsePreviousValue': False
+                         },
+                         ])
+    except ClientError as error:
+        logger.error('Problem during update'.format(stack_name))
+        logger.error(error.message)
+        return False
 
 
     return True
@@ -55,12 +66,8 @@ def validate_parameters(update_parameters):
 
 #validate json and parse sns event to dictionary or class -> how does it look like?
 def parse_event(event):
-    return {"stack_name": "sample-stack", "parameter_name": "InstanceType", "parameter_value": "t2.micro"}
+    return {"stack_name": "sample-stack", "parameter_name": "InstanceType", "parameter_value": "t2.small"}
 
-#find stack according to parameter -> not found == error
-def find_stack(stack_name):
-    stack = cloudformation.Stack(stack_name)
-    return stack
 
 
 handler(None, None)
