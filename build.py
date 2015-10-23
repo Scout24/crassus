@@ -5,9 +5,11 @@ import os
 import time
 import boto3
 import zipfile
+import subprocess
 
 from datetime import datetime
 from pybuilder.core import use_plugin, init, task
+from pybuilder.plugins.python.install_dependencies_plugin import as_pip_argument
 
 use_plugin("python.core")
 use_plugin("python.unittest")
@@ -29,7 +31,7 @@ default_task = ['clean', 'analyze', 'package']
 @init
 def set_properties(project):
     project.depends_on("boto3")
-    project.depends_on("unittest2")
+    project.build_depends_on("unittest2")
     project.build_depends_on("mock")
     #project.set_property('coverage_break_build', False)
 
@@ -62,9 +64,8 @@ def set_properties_for_teamcity_builds(project):
 # ------------------ AWS Lambda deployment logic starts here -------------------
 
 
-def zip_recursive(archive, directory, folder=""):
+def zip_recursive(archive, directory, folder="", excludes=None):
     """Zip directories recursively"""
-    excludes = ['scripts']
     for item in os.listdir(directory):
         if not item in excludes:
             if os.path.isfile(os.path.join(directory, item)):
@@ -74,23 +75,33 @@ def zip_recursive(archive, directory, folder=""):
             elif os.path.isdir(os.path.join(directory, item)):
                 zip_recursive(archive,
                               os.path.join(directory, item),
-                              folder=os.path.join(folder, item))
+                              folder=os.path.join(folder, item),
+                              excludes=excludes)
 
 
 def copy_dir_content_to_ziproot(archive, directory):
     """Put every file found in directory to root layer of the zipfile"""
-    #import pdb; pdb.set_trace()
     for item in os.listdir(directory):
         if os.path.isfile(os.path.join(directory, item)):
             archive.write(os.path.join(directory, item),
                           item, zipfile.ZIP_DEFLATED)
 
 
+def package_dependencies(project, target_directory):
+    """Get all dependencies from project and install them to given dir"""
+    dependencies = map(lambda dep: as_pip_argument(dep), project.dependencies)
+    pip_cmd = 'pip install --target {0} {1}'
+    for dependency in dependencies:
+        cmd = pip_cmd.format(target_directory, dependency).split()
+        subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+
 @task
-def package_lambda_code():
+def package_lambda_code(project):
     build_dir = 'target/dist/crassus-{0}/'.format(version)
     archive = zipfile.ZipFile('target/crassus.zip', 'w')
-    zip_recursive(archive, build_dir)
+    package_dependencies(project, build_dir)
+    zip_recursive(archive, build_dir, excludes=['scripts'])
     copy_dir_content_to_ziproot(archive, '{0}/scripts/'.format(build_dir))
     archive.close()
 
@@ -103,4 +114,4 @@ def upload_zip_to_s3():
     keyname = 'crassus-{0}.zip'.format(formatted_timestamp)
     s3 = boto3.resource('s3')
     data = open('target/crassus.zip', 'rb')
-    s3.Bucket('crassus-zips1').put_object(Key=keyname, Body=data)
+    s3.Bucket('crassus-zips').put_object(Key=keyname, Body=data)
