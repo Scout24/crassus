@@ -2,14 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
-import boto3
-import zipfile
-import subprocess
 
-from datetime import datetime
-from pybuilder.core import use_plugin, init, task
-from pybuilder.plugins.python.install_dependencies_plugin import as_pip_argument
+from pybuilder.core import use_plugin, init
 
 use_plugin("python.core")
 use_plugin("python.unittest")
