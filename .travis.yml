@@ -1,0 +1,10 @@
+language: python
+python:
+  - "2.7"
+  - "pypy"
+install:
+  - pip install pybuilder
+  - pip install coveralls
+  - pyb install_dependencies
+
+script: "pyb verify analyze"
