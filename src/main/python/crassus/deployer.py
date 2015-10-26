@@ -17,9 +17,9 @@ MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
 
 def deploy_stack(event, context):
-    logger.debug('Received event: {}'.format(event))
+    logger.debug('Received event: %s', event)
     stack_name, notification_arn, parameter_name, parameter_value = parse_event(event)
-    logger.debug('Extracted: {0}, {1}, {2}, {3}'.format(stack_name, notification_arn, parameter_name, parameter_value))
+    logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameter_name, parameter_value)
 
     if not validate_parameters(None):
         notify(MESSAGE_INVALID_PARAMETERS, notification_arn)
@@ -27,7 +27,6 @@ def deploy_stack(event, context):
 
     cloudformation = boto3.resource('cloudformation')
     stack = cloudformation.Stack(stack_name)
-
 
     try:
         stack.load()
@@ -37,8 +36,6 @@ def deploy_stack(event, context):
         return False
 
     logger.debug('Found stack: {}'.format(stack))
-
-
 
     try:
         stack.update(UsePreviousTemplate=True,
@@ -74,6 +71,4 @@ def validate_parameters(update_parameters):
 
 def parse_event(event):
     payload = json.loads(event['Records'][0]['Sns']['Message'])
-    return payload['stackName'] ,payload['notificationARN'], 'dockerImageVersion', payload['params']['dockerImageVersion']
-
-
+    return payload['stackName'], payload['notificationARN'], 'dockerImageVersion', payload['params']['dockerImageVersion']
