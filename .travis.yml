@@ -8,4 +8,6 @@ install:
   - pyb install_dependencies
 
 script: "pyb verify analyze"
+after_success:
+  - coveralls --verbose
 
