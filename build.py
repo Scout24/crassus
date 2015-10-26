@@ -50,7 +50,8 @@ def set_properties_for_teamcity_builds(project):
         'clean',
         'install_build_dependencies',
         'publish',
-        'package_lambda_code'
+        'package_lambda_code',
+        'upload_zip_to_s3',
     ]
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
