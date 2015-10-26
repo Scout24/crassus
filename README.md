@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ImmobilienScout24/crassus.svg?branch=master)](https://travis-ci.org/ImmobilienScout24/crassus)
-
+[![Coverage Status](https://coveralls.io/repos/ImmobilienScout24/crassus/badge.svg?branch=master&service=github)](https://coveralls.io/github/ImmobilienScout24/crassus?branch=master)
 
 # crassus
 Cross Account Smart Software Update Service
