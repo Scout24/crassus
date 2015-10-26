@@ -8,3 +8,4 @@ install:
   - pyb install_dependencies
 
 script: "pyb verify analyze"
+
