@@ -1,3 +1,5 @@
+https://travis-ci.org/ImmobilienScout24/crassus.svg?branch=master
+
 # crassus
 Cross Account Smart Software Update Service
 
