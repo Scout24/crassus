@@ -8,8 +8,6 @@ logger.setLevel(logging.DEBUG)
 consoleLogger = logging.StreamHandler()
 logger.addHandler(consoleLogger)
 
-cloudformation = boto3.resource('cloudformation')
-sns = boto3.resource('sns')
 
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
 
@@ -27,6 +25,7 @@ def deploy_stack(event, context):
         notify(MESSAGE_INVALID_PARAMETERS, notification_arn)
         raise Exception('Invalid parameters')
 
+    cloudformation = boto3.resource('cloudformation')
     stack = cloudformation.Stack(stack_name)
 
 
@@ -62,6 +61,7 @@ def deploy_stack(event, context):
 
 
 def notify(message, notification_arn):
+    sns = boto3.resource('sns')
     notification_topic = sns.Topic(notification_arn)
     notification_topic.publish(Message=message,
                                Subject=NOTIFICATION_SUBJECT,
