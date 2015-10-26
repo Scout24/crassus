@@ -10,7 +10,7 @@ use_plugin("python.unittest")
 use_plugin("python.install_dependencies")
 use_plugin("python.flake8")
 use_plugin("pypi:pybuilder_aws_lambda_plugin")
-#use_plugin("python.coverage")
+use_plugin("python.coverage")
 
 name = 'crassus'
 summary = 'AWS lambda function for deployment automation'
@@ -28,7 +28,7 @@ def set_properties(project):
     project.depends_on("boto3")
     project.build_depends_on("unittest2")
     project.build_depends_on("mock")
-    #project.set_property('coverage_break_build', False)
+    project.set_property('coverage_break_build', False)
 
     project.set_property('distutils_classifiers', [
         'Development Status :: 4 - Beta',
