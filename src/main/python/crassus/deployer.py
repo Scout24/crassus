@@ -19,12 +19,13 @@ MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
 
 def deploy_stack(event, context):
-    cfn_update_parameters = parse_event(event)
-    logger.debug('Parsed parameters: {}'.format(cfn_update_parameters))
-    stack_name = cfn_update_parameters['stackName']
-    notification_arn = cfn_update_parameters['notificationARN']
-    parameter_name = 'dockerImageVersion'
-    parameter_value = cfn_update_parameters['params']['dockerImageVersion']
+    logger.debug('Received event: {}'.format(event))
+    stack_name, notification_arn, parameter_name, parameter_value = parse_event(event)
+    logger.debug('Extracted: {0}, {1}, {2}, {3}'.format(stack_name, notification_arn, parameter_name, parameter_value))
+
+    if not validate_parameters(None):
+        notify(MESSAGE_INVALID_PARAMETERS, notification_arn)
+        raise Exception('Invalid parameters')
 
     stack = cloudformation.Stack(stack_name)
 
@@ -38,9 +39,7 @@ def deploy_stack(event, context):
 
     logger.debug('Found stack: {}'.format(stack))
 
-    if not validate_parameters(cfn_update_parameters):
-        notify(MESSAGE_INVALID_PARAMETERS, notification_arn)
-        raise Exception('Invalid parameters')
+
 
     try:
         stack.update(UsePreviousTemplate=True,
@@ -73,10 +72,8 @@ def validate_parameters(update_parameters):
     return True
 
 
-# validate json and parse sns event to dictionary or class -> how does it look like?
 def parse_event(event):
     payload = json.loads(event['Records'][0]['Sns']['Message'])
-
-    return payload
+    return payload['stackName'] ,payload['notificationARN'], 'dockerImageVersion', payload['params']['dockerImageVersion']
 
 
