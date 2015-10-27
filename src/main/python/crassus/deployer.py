@@ -12,7 +12,6 @@ logger.addHandler(consoleLogger)
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
 
 MESSAGE_STACK_NOT_FOUND = 'Did not found stack {0}: {1}'
-MESSAGE_INVALID_PARAMETERS = 'Invalid parameters'
 MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
 
@@ -20,10 +19,6 @@ def deploy_stack(event, context):
     logger.debug('Received event: %s', event)
     stack_name, notification_arn, parameter_name, parameter_value = parse_event(event)
     logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameter_name, parameter_value)
-
-    if not validate_parameters(None):
-        notify(MESSAGE_INVALID_PARAMETERS, notification_arn)
-        raise Exception('Invalid parameters')
 
     cloudformation = boto3.resource('cloudformation')
     stack = cloudformation.Stack(stack_name)
@@ -63,10 +58,6 @@ def notify(message, notification_arn):
     notification_topic.publish(Message=message,
                                Subject=NOTIFICATION_SUBJECT,
                                MessageStructure='string')
-
-
-def validate_parameters(update_parameters):
-    return True
 
 
 def parse_event(event):
