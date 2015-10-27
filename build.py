@@ -44,6 +44,7 @@ def set_properties(project):
 @init(environments='teamcity')
 def set_properties_for_teamcity_builds(project):
     project.set_property('teamcity_output', True)
+    project.set_property('bucket_name', os.environ.get('BUCKET_NAME_FOR_UPLOAD'))
     project.version = '%s-%s' % (project.version,
                                  os.environ.get('BUILD_NUMBER', 0))
     project.default_task = [
