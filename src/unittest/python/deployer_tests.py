@@ -14,7 +14,7 @@ SAMPLE_EVENT = {
                 'Signature': '<SIGNATURE>',
                 'SigningCertUrl': '<SIGNING URL>',
                 'MessageId': '<MESSAGE ID>',
-                'Message': '{"stackName": "ANY STACK","notificationARN": "ANY ARN","region": "eu-west-1","params": {"dockerImageVersion": "any value"}}',
+                'Message': '{"stackName": "ANY STACK","notificationARN": "ANY ARN","region": "eu-west-1","params": [{"ParameterKey": "ANY_NAME1", "ParameterValue": "ANY_VALUE1"}, {"ParameterKey": "ANY_NAME2", "ParameterValue": "ANY_VALUE2"}]}',
                 'MessageAttributes': {
                 },
                 'Type': 'Notification',
@@ -29,10 +29,12 @@ SAMPLE_EVENT = {
 
 class TestDeployer(unittest.TestCase):
 
-    def test_parse_event(self):
-        stack_name, notification_arn, parameter_name, parameter_value = parse_event(SAMPLE_EVENT)
+    def test_parse_valid_event(self):
+        stack_name, notification_arn, parameters = parse_event(SAMPLE_EVENT)
 
         self.assertEqual(stack_name, 'ANY STACK')
         self.assertEqual(notification_arn, 'ANY ARN')
-        self.assertEqual(parameter_name, 'dockerImageVersion')
-        self.assertEqual(parameter_value, 'any value')
+        self.assertEqual(parameters[0]['ParameterKey'], 'ANY_NAME1')
+        self.assertEqual(parameters[0]['ParameterValue'], 'ANY_VALUE1')
+        self.assertEqual(parameters[1]['ParameterKey'], 'ANY_NAME2')
+        self.assertEqual(parameters[1]['ParameterValue'], 'ANY_VALUE2')

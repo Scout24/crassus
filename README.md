@@ -14,9 +14,12 @@ Actual a SNS with a json payload is used to trigger crassus. The payload should 
         "stackName": "sample-stack",
         "notificationARN": "<NOTIFICATION ARN>",
         "region": "<AWS-REGION-ID>",
-        "params": {
-          "dockerImageVersion": "69"
-        }
+        "params": [
+                    {
+                      "ParameterKey": "<CFN PARAMETER>",
+                      "ParameterValue": "<CFN PARAMETER VALUE>"
+                    }
+                 ]
       }
 ```
 
@@ -39,9 +42,12 @@ Sample event as expected from deployer
         "stackName": "sample-stack",
         "notificationARN": "<NOTIFICATION ARN>",
         "region": "eu-west-1",
-        "params": {
-          "dockerImageVersion": "69"
-        }
+        "params": [
+                    {
+                      "ParameterKey": "InstanceType",
+                      "ParameterValue": "t2.micro"
+                    }
+                  ]
       }",
       "MessageAttributes": {
       },
