@@ -8,9 +8,7 @@ logger.setLevel(logging.DEBUG)
 consoleLogger = logging.StreamHandler()
 logger.addHandler(consoleLogger)
 
-
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
-
 MESSAGE_STACK_NOT_FOUND = 'Stack not found {0}: {1}'
 MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
@@ -23,14 +21,6 @@ def deploy_stack(event, context):
     logger.debug('Found stack: %s', stack)
 
     update_stack(stack, parameters, notification_arn)
-
-
-def notify(message, notification_arn):
-    sns = boto3.resource('sns')
-    notification_topic = sns.Topic(notification_arn)
-    notification_topic.publish(Message=message,
-                               Subject=NOTIFICATION_SUBJECT,
-                               MessageStructure='string')
 
 
 def parse_event(event):
@@ -50,6 +40,7 @@ def map_cloudformation_parameters(parameter):
     cloudformation_parameter['UsePreviousValue'] = False
 
     return cloudformation_parameter
+
 
 def load_stack(stack_name, notification_arn):
     cloudformation = boto3.resource('cloudformation')
@@ -73,3 +64,10 @@ def update_stack(stack, parameters, notification_arn):
     except ClientError as error:
         logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
         notify(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message), notification_arn)
+
+def notify(message, notification_arn):
+    sns = boto3.resource('sns')
+    notification_topic = sns.Topic(notification_arn)
+    notification_topic.publish(Message=message,
+                               Subject=NOTIFICATION_SUBJECT,
+                               MessageStructure='string')

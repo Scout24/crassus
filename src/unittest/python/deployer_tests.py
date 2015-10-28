@@ -1,16 +1,21 @@
 import unittest
-
 from crassus.deployer import (
     parse_event,
     map_cloudformation_parameters,
     load_stack,
     update_stack,
+    deploy_stack,
     notify,
     NOTIFICATION_SUBJECT,
 )
 
+
 from botocore.exceptions import ClientError
 from mock import Mock, patch, ANY
+
+PARAMETER = 'ANY_PARAMETER'
+ARN_ID = 'ANY_ARN'
+STACK_NAME = 'ANY_STACK'
 
 CRASSUS_CFN_PARAMETERS = [
     {
@@ -47,8 +52,25 @@ SAMPLE_EVENT = {
     ]
 }
 
+class TestDeployStack(unittest.TestCase):
 
-class TestDeployer(unittest.TestCase):
+    @patch('crassus.deployer.parse_event')
+    @patch('crassus.deployer.load_stack')
+    @patch('crassus.deployer.update_stack')
+    def test_should_call_all_necessary_stuff(self, update_stack_mock, load_stack_mock, parse_event_mock):
+        parse_event_mock.return_value = [STACK_NAME, ARN_ID, PARAMETER]
+        load_stack_mock.return_value = 'ANY_STACK_ID'
+
+        deploy_stack(SAMPLE_EVENT, None)
+
+        parse_event_mock.assert_called_once_with(SAMPLE_EVENT)
+        load_stack_mock.assert_called_once_with(STACK_NAME, ARN_ID)
+        update_stack_mock.assert_called_once_with('ANY_STACK_ID', PARAMETER, ARN_ID)
+
+
+
+
+class TestParseParameters(unittest.TestCase):
     def test_parse_valid_event(self):
         stack_name, notification_arn, parameters = parse_event(SAMPLE_EVENT)
 
