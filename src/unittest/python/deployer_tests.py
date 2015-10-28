@@ -4,6 +4,7 @@ from crassus.deployer import (
     parse_event,
     map_cloudformation_parameters,
     load_stack,
+    update_stack,
     notify,
     NOTIFICATION_SUBJECT,
 )
@@ -83,6 +84,31 @@ class TestNotify(unittest.TestCase):
                                                    MessageStructure='string')
 
 
+class TestUpdateStack(unittest.TestCase):
+
+    def setUp(self):
+        self.stack_mock = Mock()
+
+
+
+    def test_update_stack_should_call_update(self):
+        update_stack(self.stack_mock, ['ANY PARAMETER'], 'ANY_ARN')
+
+        self.stack_mock.update.assert_called_once_with(UsePreviousTemplate=True,
+                                                       Parameters=['ANY PARAMETER'],
+                                                       NotificationARNs=['ANY_ARN'])
+
+    @patch('crassus.deployer.notify')
+    def test_update_stack_should_notify_in_case_of_error(self, notify_mock):
+        self.stack_mock.update.side_effect = ClientError({'Error': {'Code': 'ExpectedException', 'Message': ''}},
+                                                         'test_deploy_stack_should_notify_error_in_case_of_client_error')
+
+
+        update_stack(self.stack_mock, ['ANY PARAMETER'], 'ANY_ARN')
+
+        notify_mock.assert_called_once_with(ANY, 'ANY_ARN')
+
+
 class TestLoadStack(unittest.TestCase):
     def setUp(self):
         self.patcher = patch('boto3.resource')
@@ -110,3 +136,4 @@ class TestLoadStack(unittest.TestCase):
         load_stack('ANY_STACK', 'ANY_ARN')
 
         notify_mock.assert_called_once_with(ANY, 'ANY_ARN')
+

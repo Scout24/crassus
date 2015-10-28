@@ -11,33 +11,18 @@ logger.addHandler(consoleLogger)
 
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
 
-MESSAGE_STACK_NOT_FOUND = 'Did not found stack {0}: {1}'
+MESSAGE_STACK_NOT_FOUND = 'Stack not found {0}: {1}'
 MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
 
 def deploy_stack(event, context):
     logger.debug('Received event: %s', event)
-
     stack_name, notification_arn, parameters = parse_event(event)
-
     logger.debug('Extracted: %s, %s, %s', stack_name, notification_arn, parameters)
-
     stack = load_stack(stack_name, notification_arn)
-
     logger.debug('Found stack: %s', stack)
 
-    try:
-        stack.update(UsePreviousTemplate=True,
-                     Parameters=parameters,
-                     NotificationARNs=[
-                         notification_arn
-                     ])
-    except ClientError as error:
-        logger.error(MESSAGE_UPDATE_PROBLEM.format(stack_name, error.message))
-        notify(MESSAGE_UPDATE_PROBLEM.format(stack_name, error.message), notification_arn)
-        return False
-
-    return True
+    update_stack(stack, parameters, notification_arn)
 
 
 def notify(message, notification_arn):
@@ -78,3 +63,13 @@ def load_stack(stack_name, notification_arn):
 
     return stack
 
+def update_stack(stack, parameters, notification_arn):
+    try:
+        stack.update(UsePreviousTemplate=True,
+                     Parameters=parameters,
+                     NotificationARNs=[
+                         notification_arn
+                     ])
+    except ClientError as error:
+        logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
+        notify(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message), notification_arn)
