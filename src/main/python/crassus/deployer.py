@@ -22,7 +22,7 @@ def deploy_stack(event, context):
 
     logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameters)
 
-    load_stack(stack_name, notification_arn)
+    stack = load_stack(stack_name, notification_arn)
 
     logger.debug('Found stack: {}'.format(stack))
 
