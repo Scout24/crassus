@@ -16,8 +16,8 @@ Actual a SNS with a json payload is used to trigger crassus. The payload should 
         "region": "<AWS-REGION-ID>",
         "params": [
                     {
-                      "ParameterKey": "<CFN PARAMETER>",
-                      "ParameterValue": "<CFN PARAMETER VALUE>"
+                      "updateParameterKey": "<CFN PARAMETER>",
+                      "updateParameterValue": "<CFN PARAMETER VALUE>"
                     }
                  ]
       }
@@ -44,8 +44,8 @@ Sample event as expected from deployer
         "region": "eu-west-1",
         "params": [
                     {
-                      "ParameterKey": "InstanceType",
-                      "ParameterValue": "t2.micro"
+                      "updateParameterKey": "InstanceType",
+                      "updateParameterValue": "t2.micro"
                     }
                   ]
       }",

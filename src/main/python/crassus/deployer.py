@@ -57,9 +57,17 @@ def notify(message, notification_arn):
 def parse_event(event):
     payload = json.loads(event['Records'][0]['Sns']['Message'])
     payload_parameters = payload['params']
-    cloudformation_parameters = []
 
-    for parameter in payload_parameters:
-        cloudformation_parameters.append({"ParameterKey" : parameter["ParameterKey"], "ParameterValue": parameter["ParameterValue"], "UsePreviousValue": False})
+    cloudformation_parameters = map(map_cloudformation_parameters, payload_parameters)
 
     return payload['stackName'], payload['notificationARN'], cloudformation_parameters
+
+
+def map_cloudformation_parameters(parameter):
+    cloudformation_parameter = {}
+
+    cloudformation_parameter['ParameterKey'] = parameter["updateParameterKey"]
+    cloudformation_parameter['ParameterValue'] = parameter["updateParameterValue"]
+    cloudformation_parameter['UsePreviousValue'] = False
+
+    return cloudformation_parameter
