@@ -20,11 +20,11 @@ def deploy_stack(event, context):
 
     stack_name, notification_arn, parameters = parse_event(event)
 
-    logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameters)
+    logger.debug('Extracted: %s, %s, %s', stack_name, notification_arn, parameters)
 
     stack = load_stack(stack_name, notification_arn)
 
-    logger.debug('Found stack: {}'.format(stack))
+    logger.debug('Found stack: %s', stack)
 
     try:
         stack.update(UsePreviousTemplate=True,
