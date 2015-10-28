@@ -17,18 +17,12 @@ MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
 def deploy_stack(event, context):
     logger.debug('Received event: %s', event)
+
     stack_name, notification_arn, parameters = parse_event(event)
-    logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameters, parameters)
 
-    cloudformation = boto3.resource('cloudformation')
-    stack = cloudformation.Stack(stack_name)
+    logger.debug('Extracted: %s, %s, %s, %s', stack_name, notification_arn, parameters)
 
-    try:
-        stack.load()
-    except ClientError as error:
-        logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
-        notify(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message), notification_arn)
-        return False
+    load_stack(stack_name, notification_arn)
 
     logger.debug('Found stack: {}'.format(stack))
 
@@ -71,3 +65,16 @@ def map_cloudformation_parameters(parameter):
     cloudformation_parameter['UsePreviousValue'] = False
 
     return cloudformation_parameter
+
+def load_stack(stack_name, notification_arn):
+    cloudformation = boto3.resource('cloudformation')
+    stack = cloudformation.Stack(stack_name)
+
+    try:
+        stack.load()
+    except ClientError as error:
+        logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
+        notify(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message), notification_arn)
+
+    return stack
+
