@@ -5,6 +5,9 @@ Parameters:
     Description: Name of the S3 bucket where the latest crassus software can be downloaded from.
     Default: is24-crassus
     Type: String
+  principalName:
+    Description: The ARN of the role which can upload new crassus software
+    Type: String
 Resources:
   crassusBucket:
     Type: AWS::S3::Bucket
@@ -12,3 +15,20 @@ Resources:
       BucketName:
         Ref: bucketName
       AccessControl: PublicRead
+  crassusBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: crassusBucket
+        PolicyDocument:
+          Statement:
+            - Action: 's3:PutObject'
+              Effect: Allow
+              Principal:
+                AWS:
+                  Ref: principalName
+              Resource:
+                '|Join|':
+                  - 'arn:aws:s3:::'
+                  - Ref: crassusBucket
+                  - '/*'
