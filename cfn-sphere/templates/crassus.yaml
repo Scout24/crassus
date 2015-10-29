@@ -28,7 +28,7 @@ Resources:
   inputSnsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: Stack update messages
+      DisplayName: Topic to update a CFN Stack
       Subscription:
       - Endpoint:
           Fn::GetAtt:
@@ -82,10 +82,19 @@ Resources:
         S3Key:
           Ref: zipFile
       Description: updates a stack using cloudformation
-      Handler: crassus.handler
+      Handler: crassus_deployer_lambda.handler
       Role:
         Fn::GetAtt:
         - stackUpdateRole
         - Arn
       Runtime: python2.7
       Timeout: 15
+  updateStackPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName:
+        Ref: updateStackFunction
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: inputSnsTopic
