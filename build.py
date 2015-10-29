@@ -29,6 +29,8 @@ def set_properties(project):
     project.build_depends_on("unittest2")
     project.build_depends_on("mock")
     project.set_property('coverage_break_build', False)
+    project.set_property('bucket_name', os.environ.get('BUCKET_NAME_FOR_UPLOAD'))
+    project.set_property('lambda_file_access_control', os.environ.get('LAMBDA_FILE_ACCESS_CONTROL'))
 
     project.set_property('distutils_classifiers', [
         'Development Status :: 4 - Beta',
@@ -44,8 +46,6 @@ def set_properties(project):
 @init(environments='teamcity')
 def set_properties_for_teamcity_builds(project):
     project.set_property('teamcity_output', True)
-    project.set_property('bucket_name', os.environ.get('BUCKET_NAME_FOR_UPLOAD'))
-    project.set_property('lambda_file_access_control', os.environ.get('LAMBDA_FILE_ACCESS_CONTROL'))
 
     project.version = '%s-%s' % (project.version,
                                  os.environ.get('BUILD_NUMBER', 0))

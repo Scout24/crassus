@@ -60,6 +60,9 @@ def update_stack(stack, parameters, notification_arn):
                      Parameters=parameters,
                      NotificationARNs=[
                          notification_arn
+                     ],
+                     Capabilities=[
+                         'CAPABILITY_IAM',
                      ])
     except ClientError as error:
         logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
