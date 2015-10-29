@@ -118,7 +118,8 @@ class TestUpdateStack(unittest.TestCase):
 
         self.stack_mock.update.assert_called_once_with(UsePreviousTemplate=True,
                                                        Parameters=['ANY PARAMETER'],
-                                                       NotificationARNs=['ANY_ARN'])
+                                                       NotificationARNs=['ANY_ARN'],
+                                                       Capabilities=['CAPABILITY_IAM'])
 
     @patch('crassus.deployer.notify')
     def test_update_stack_should_notify_in_case_of_error(self, notify_mock):
