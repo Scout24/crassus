@@ -5,6 +5,7 @@ from crassus.deployer import (
     load_stack,
     update_stack,
     deploy_stack,
+    merge_stack_parameters,
     notify,
     NOTIFICATION_SUBJECT,
 )
@@ -83,10 +84,8 @@ class TestParseParameters(unittest.TestCase):
 
         self.assertEqual(result[0]['ParameterKey'], 'ANY_NAME1')
         self.assertEqual(result[0]['ParameterValue'], 'ANY_VALUE1')
-        self.assertEqual(result[0]['UsePreviousValue'], False)
         self.assertEqual(result[1]['ParameterKey'], 'ANY_NAME2')
         self.assertEqual(result[1]['ParameterValue'], 'ANY_VALUE2')
-        self.assertEqual(result[1]['UsePreviousValue'], False)
 
 
 class TestNotify(unittest.TestCase):
@@ -160,3 +159,20 @@ class TestLoadStack(unittest.TestCase):
 
         notify_mock.assert_called_once_with(ANY, 'ANY_ARN')
 
+class TestMapCloudformationParameters(unittest.TestCase):
+
+    def test_should_merge_all_parameters(self):
+        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE'}]
+        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_OLD_VALUE'}, {'ParameterKey': 'ANY_EXISTING_KEY', 'ParameterValue': 'ANY_EXISTING_VALUE'}]
+
+        merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
+
+        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}, {'ParameterKey': 'ANY_EXISTING_KEY', 'ParameterValue': 'ANY_EXISTING_VALUE', 'UsePreviousValue': True}])
+
+    def test_should_merge_all_parameters_when_update_parameter_is_the_only_parameter(self):
+        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE'}]
+        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_OLD_VALUE'}]
+
+        merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
+
+        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}])
