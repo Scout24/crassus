@@ -109,14 +109,39 @@ class TestUpdateStack(unittest.TestCase):
 
     def setUp(self):
         self.stack_mock = Mock()
+        self.stack_mock.parameters = [
+            {"ParameterKey": "KeyOne",
+             "ParameterValue": "OriginalValueOne",
+            },
+            {"ParameterKey": "KeyTwo",
+             "ParameterValue": "OriginalValueTwo",
+            }
+        ]
 
+        self.update_parameters = [
+            {"ParameterKey": "KeyOne",
+             "ParameterValue": "UpdateValueOne",
+            },
+        ]
+
+        self.expected_parameters = [
+            {"ParameterKey": "KeyOne",
+             "ParameterValue": "UpdateValueOne",
+             "UsePreviousValue": False
+            },
+            {"ParameterKey": "KeyTwo",
+             "ParameterValue": "OriginalValueTwo",
+             "UsePreviousValue": True
+            }
+        ]
 
 
     def test_update_stack_should_call_update(self):
-        update_stack(self.stack_mock, ['ANY PARAMETER'], 'ANY_ARN')
+
+        update_stack(self.stack_mock, self.update_parameters, 'ANY_ARN')
 
         self.stack_mock.update.assert_called_once_with(UsePreviousTemplate=True,
-                                                       Parameters=['ANY PARAMETER'],
+                                                       Parameters=self.expected_parameters,
                                                        NotificationARNs=['ANY_ARN'],
                                                        Capabilities=['CAPABILITY_IAM'])
 
@@ -126,7 +151,7 @@ class TestUpdateStack(unittest.TestCase):
                                                          'test_deploy_stack_should_notify_error_in_case_of_client_error')
 
 
-        update_stack(self.stack_mock, ['ANY PARAMETER'], 'ANY_ARN')
+        update_stack(self.stack_mock, self.update_parameters, 'ANY_ARN')
 
         notify_mock.assert_called_once_with(ANY, 'ANY_ARN')
 

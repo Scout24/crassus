@@ -54,9 +54,11 @@ def load_stack(stack_name, notification_arn):
     return stack
 
 def update_stack(stack, update_parameters, notification_arn):
+    stack_parameters = stack.parameters
+    merged = merge_stack_parameters(update_parameters, stack_parameters)
     try:
         stack.update(UsePreviousTemplate=True,
-                     Parameters=update_parameters,
+                     Parameters=merged,
                      NotificationARNs=[
                          notification_arn
                      ],
