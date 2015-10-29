@@ -2,3 +2,6 @@ region: eu-west-1
 stacks:
   crassus-distribution:
     template-url: templates/bootstrap.yaml
+    parameters:
+      bucketName: '<bucket_name>'
+      principalName: '<arn>'
