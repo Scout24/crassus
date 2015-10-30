@@ -79,6 +79,7 @@ def merge_stack_parameters(update_parameters, stack_parameters):
                 merged_stack_parameters.append(update_parameter)
             else:
                 stack_parameter['UsePreviousValue'] = True
+                del stack_parameter['ParameterValue']
                 merged_stack_parameters.append(stack_parameter)
 
     return merged_stack_parameters

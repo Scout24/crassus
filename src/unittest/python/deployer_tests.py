@@ -130,7 +130,6 @@ class TestUpdateStack(unittest.TestCase):
              "UsePreviousValue": False
             },
             {"ParameterKey": "KeyTwo",
-             "ParameterValue": "OriginalValueTwo",
              "UsePreviousValue": True
             }
         ]
@@ -192,7 +191,7 @@ class TestMapCloudformationParameters(unittest.TestCase):
 
         merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
 
-        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}, {'ParameterKey': 'ANY_EXISTING_KEY', 'ParameterValue': 'ANY_EXISTING_VALUE', 'UsePreviousValue': True}])
+        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}, {'ParameterKey': 'ANY_EXISTING_KEY', 'UsePreviousValue': True}])
 
     def test_should_merge_all_parameters_when_update_parameter_is_the_only_parameter(self):
         update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE'}]
