@@ -102,3 +102,18 @@ class StackUpdateParameter(dict):
     def to_aws_format(self):
         return [{"ParameterKey": k, "ParameterValue": v}
                 for k, v in self.items()]
+
+    def merge(self, stack_parameters):
+        merged_stack_parameters = []
+        update_parameters = self.to_aws_format()
+
+        for stack_parameter in stack_parameters:
+            for update_parameter in update_parameters:
+                if update_parameter['ParameterKey'] in stack_parameter.values():
+                    merged_stack_parameters.append(update_parameter)
+                else:
+                    stack_parameter['UsePreviousValue'] = True
+                    del stack_parameter['ParameterValue']
+                    merged_stack_parameters.append(stack_parameter)
+
+        return merged_stack_parameters

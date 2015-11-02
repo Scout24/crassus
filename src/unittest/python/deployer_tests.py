@@ -229,3 +229,23 @@ class TestStackUpdateParameters(unittest.TestCase):
                             "ParameterValue": "VALUE2"}]
         sup = StackUpdateParameter(self.input_message)
         self.assertEqual(sup.to_aws_format(), expected_output)
+
+    def test_merge(self):
+        input_message = {
+              "version": 1,
+              "stackName": "ANY_STACK",
+              "region": "ANY_REGION",
+              "parameters": {
+                "PARAMETER2": "UPDATED_VALUE2",
+              }
+            }
+        expected_output = [{"ParameterKey": "PARAMETER1",
+                            "UsePreviousValue": True},
+                           {"ParameterKey": "PARAMETER2",
+                            "ParameterValue": "UPDATED_VALUE2"}]
+        stack_parameter = [{"ParameterKey": "PARAMETER1",
+                            "ParameterValue": "VALUE1"},
+                           {"ParameterKey": "PARAMETER2",
+                            "ParameterValue": "VALUE2"}]
+        sup = StackUpdateParameter(input_message)
+        self.assertEqual(sup.merge(stack_parameter), expected_output)
