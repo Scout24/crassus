@@ -1,5 +1,4 @@
 import unittest
-import json
 from crassus.deployer import (
     parse_event,
     load_stack,
@@ -11,10 +10,8 @@ from crassus.deployer import (
     StackUpdateParameter,
 )
 
-
-from botocore.exceptions import ClientError
-from mock import Mock, patch, ANY
-from textwrap import dedent
+# from botocore.exceptions import ClientError
+from mock import Mock, patch
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -55,12 +52,15 @@ SAMPLE_EVENT = {
     ]
 }
 
+
 class TestDeployStack(unittest.TestCase):
 
     @patch('crassus.deployer.parse_event')
     @patch('crassus.deployer.load_stack')
     @patch('crassus.deployer.update_stack')
-    def test_should_call_all_necessary_stuff(self, update_stack_mock, load_stack_mock, parse_event_mock):
+    def test_should_call_all_necessary_stuff(self, update_stack_mock,
+                                             load_stack_mock,
+                                             parse_event_mock):
         stack_update_parameter_mock = Mock()
         stack_update_parameter_mock.stack_name = STACK_NAME
         stack_update_parameter_mock.parameters = PARAMETER
@@ -71,9 +71,8 @@ class TestDeployStack(unittest.TestCase):
 
         parse_event_mock.assert_called_once_with(SAMPLE_EVENT)
         load_stack_mock.assert_called_once_with(STACK_NAME)
-        update_stack_mock.assert_called_once_with('ANY_STACK_ID', stack_update_parameter_mock)
-
-
+        update_stack_mock.assert_called_once_with('ANY_STACK_ID',
+                                                  stack_update_parameter_mock)
 
 
 class TestParseParameters(unittest.TestCase):
@@ -96,8 +95,10 @@ class TestNotify(unittest.TestCase):
 
         notify(self.MESSAGE, self.NOTIFICATION_ARN)
 
-        topic_mock.publish.assert_called_once_with(Message=self.MESSAGE, Subject=NOTIFICATION_SUBJECT,
-                                                   MessageStructure='string')
+        topic_mock.publish.assert_called_once_with(
+            Message=self.MESSAGE,
+            Subject=NOTIFICATION_SUBJECT,
+            MessageStructure='string')
 
 
 class TestUpdateStack(unittest.TestCase):
@@ -107,43 +108,43 @@ class TestUpdateStack(unittest.TestCase):
         self.stack_mock.parameters = [
             {"ParameterKey": "KeyOne",
              "ParameterValue": "OriginalValueOne",
-            },
+             },
             {"ParameterKey": "KeyTwo",
              "ParameterValue": "OriginalValueTwo",
-            }
+             }
         ]
 
         self.update_parameters = {
-              "version": 1,
-              "stackName": "ANY_STACK",
-              "region": "ANY_REGION",
-              "parameters":
-                  {"KeyOne": "UpdateValueOne"},
+            "version": 1,
+            "stackName": "ANY_STACK",
+            "region": "ANY_REGION",
+            "parameters":
+                {"KeyOne": "UpdateValueOne"},
             }
 
         self.expected_parameters = [
             {"ParameterKey": "KeyOne",
              "ParameterValue": "UpdateValueOne",
-            },
+             },
             {"ParameterKey": "KeyTwo",
              "UsePreviousValue": True
-            }
+             }
         ]
-
 
     def test_update_stack_should_call_update(self):
         update_parameters = StackUpdateParameter(self.update_parameters)
         update_stack(self.stack_mock, update_parameters)
 
-        self.stack_mock.update.assert_called_once_with(UsePreviousTemplate=True,
-                                                       Parameters=self.expected_parameters,
-                                                       Capabilities=['CAPABILITY_IAM'])
+        self.stack_mock.update.assert_called_once_with(
+            UsePreviousTemplate=True,
+            Parameters=self.expected_parameters,
+            Capabilities=['CAPABILITY_IAM'])
 
     """@patch('crassus.deployer.notify')
     def test_update_stack_should_notify_in_case_of_error(self, notify_mock):
-        self.stack_mock.update.side_effect = ClientError({'Error': {'Code': 'ExpectedException', 'Message': ''}},
-                                                         'test_deploy_stack_should_notify_error_in_case_of_client_error')
-
+        self.stack_mock.update.side_effect = ClientError(
+            {'Error': {'Code': 'ExpectedException', 'Message': ''}},
+            'test_deploy_stack_should_notify_error_in_case_of_client_error')
 
         update_stack(self.stack_mock, self.update_parameters, 'ANY_ARN')
 
@@ -160,7 +161,6 @@ class TestLoadStack(unittest.TestCase):
         self.resource_mock.return_value = self.cloudformation_mock
         self.cloudformation_mock.Stack.return_value = self.stack_mock
 
-
     def tearDown(self):
         self.patcher.stop()
 
@@ -169,52 +169,74 @@ class TestLoadStack(unittest.TestCase):
 
         self.stack_mock.load.assert_called_once_with()
 
-
     """
     @patch('crassus.deployer.notify')
-    def test_deploy_stack_should_notify_error_in_case_of_client_error(self, notify_mock):
-        self.stack_mock.load.side_effect = ClientError({'Error': {'Code': 'ExpectedException', 'Message': ''}},
-                                                       'test_deploy_stack_should_notify_error_in_case_of_client_error')
+    def test_deploy_stack_should_notify_error_in_case_of_client_error(
+        self, notify_mock):
+        self.stack_mock.load.side_effect = ClientError(
+            {'Error': {'Code': 'ExpectedException', 'Message': ''}},
+            'test_deploy_stack_should_notify_error_in_case_of_client_error')
         load_stack('ANY_STACK', 'ANY_ARN')
 
         notify_mock.assert_called_once_with(ANY, 'ANY_ARN')
     """
+
+
 class TestMapCloudformationParameters(unittest.TestCase):
 
     def test_should_merge_all_parameters(self):
-        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE'}]
-        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_OLD_VALUE'}, {'ParameterKey': 'ANY_EXISTING_KEY', 'ParameterValue': 'ANY_EXISTING_VALUE'}]
+        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
+                             'ParameterValue': 'ANY_UPDATE_VALUE'}]
+        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
+                             'ParameterValue': 'ANY_OLD_VALUE'},
+                            {'ParameterKey': 'ANY_EXISTING_KEY',
+                             'ParameterValue': 'ANY_EXISTING_VALUE'}]
 
-        merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
+        merged_cfn_parameters = merge_stack_parameters(
+            update_parameters, stack_parameters)
 
-        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}, {'ParameterKey': 'ANY_EXISTING_KEY', 'UsePreviousValue': True}])
+        self.assertEqual(merged_cfn_parameters, [
+            {'ParameterKey': 'ANY_UPDATE_KEY',
+             'ParameterValue': 'ANY_UPDATE_VALUE',
+             'UsePreviousValue': False},
+            {'ParameterKey': 'ANY_EXISTING_KEY',
+             'UsePreviousValue': True}])
 
     def test_should_merge_all_parameters_when_update_parameter_is_the_only_parameter(self):
-        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE'}]
-        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_OLD_VALUE'}]
+        update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
+                              'ParameterValue': 'ANY_UPDATE_VALUE'}]
+        stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
+                             'ParameterValue': 'ANY_OLD_VALUE'}]
 
-        merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
+        merged_cfn_parameters = merge_stack_parameters(
+            update_parameters, stack_parameters)
 
-        self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}])
+        self.assertEqual(merged_cfn_parameters, [
+            {'ParameterKey': 'ANY_UPDATE_KEY',
+             'ParameterValue': 'ANY_UPDATE_VALUE',
+             'UsePreviousValue': False}])
+
 
 class TestStackUpdateParameters(unittest.TestCase):
     def setUp(self):
         self.input_message = {
-              "version": 1,
-              "stackName": "ANY_STACK",
-              "region": "ANY_REGION",
-              "parameters": {
+            "version": 1,
+            "stackName": "ANY_STACK",
+            "region": "ANY_REGION",
+            "parameters": {
                 "PARAMETER1": "VALUE1",
                 "PARAMETER2": "VALUE2",
-              }
             }
+        }
 
     def test_init(self):
         sup = StackUpdateParameter(self.input_message)
         self.assertEqual(sup.version, 1)
         self.assertEqual(sup.stack_name, "ANY_STACK")
         self.assertEqual(sup.region, "ANY_REGION")
-        self.assertEqual(sup.items(), [("PARAMETER1", "VALUE1"),("PARAMETER2", "VALUE2")])
+        self.assertEqual(sup.items(), [
+            ("PARAMETER1", "VALUE1"),
+            ("PARAMETER2", "VALUE2")])
 
     def test_to_aws_format(self):
         expected_output = [{"ParameterKey": "PARAMETER1",
