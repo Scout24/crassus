@@ -90,3 +90,15 @@ def notify(message, notification_arn):
     notification_topic.publish(Message=message,
                                Subject=NOTIFICATION_SUBJECT,
                                MessageStructure='string')
+
+
+class StackUpdateParameter(dict):
+    def __init__(self, message):
+        self.version = message['version']
+        self.stack_name = message['stackName']
+        self.region = message['region']
+        self.update(message['parameters'])
+
+    def to_aws_format(self):
+        return [{"ParameterKey": k, "ParameterValue": v}
+                for k, v in self.items()]

@@ -1,4 +1,5 @@
 import unittest
+import json
 from crassus.deployer import (
     parse_event,
     map_cloudformation_parameters,
@@ -8,11 +9,13 @@ from crassus.deployer import (
     merge_stack_parameters,
     notify,
     NOTIFICATION_SUBJECT,
+    StackUpdateParameter,
 )
 
 
 from botocore.exceptions import ClientError
 from mock import Mock, patch, ANY
+from textwrap import dedent
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -200,3 +203,29 @@ class TestMapCloudformationParameters(unittest.TestCase):
         merged_cfn_parameters = merge_stack_parameters(update_parameters, stack_parameters)
 
         self.assertEqual(merged_cfn_parameters, [{'ParameterKey': 'ANY_UPDATE_KEY', 'ParameterValue': 'ANY_UPDATE_VALUE', 'UsePreviousValue': False}])
+
+class TestStackUpdateParameters(unittest.TestCase):
+    def setUp(self):
+        self.input_message = {
+              "version": 1,
+              "stackName": "ANY_STACK",
+              "region": "ANY_REGION",
+              "parameters": {
+                "PARAMETER1": "VALUE1",
+                "PARAMETER2": "VALUE2",
+              }
+            }
+    def test_init(self):
+        sup = StackUpdateParameter(self.input_message)
+        self.assertEqual(sup.version, 1)
+        self.assertEqual(sup.stack_name, "ANY_STACK")
+        self.assertEqual(sup.region, "ANY_REGION")
+        self.assertEqual(sup.items(), [("PARAMETER1", "VALUE1"),("PARAMETER2", "VALUE2")])
+
+    def test_to_aws_format(self):
+        expected_output = [{"ParameterKey": "PARAMETER1",
+                            "ParameterValue": "VALUE1"},
+                           {"ParameterKey": "PARAMETER2",
+                            "ParameterValue": "VALUE2"}]
+        sup = StackUpdateParameter(self.input_message)
+        self.assertEqual(sup.to_aws_format(), expected_output)
