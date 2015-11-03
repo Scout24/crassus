@@ -10,8 +10,8 @@ from crassus.deployer import (
     StackUpdateParameter,
 )
 
-# from botocore.exceptions import ClientError
-from mock import Mock, patch
+from botocore.exceptions import ClientError
+from mock import Mock, patch, ANY
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -58,9 +58,8 @@ class TestDeployStack(unittest.TestCase):
     @patch('crassus.deployer.parse_event')
     @patch('crassus.deployer.load_stack')
     @patch('crassus.deployer.update_stack')
-    def test_should_call_all_necessary_stuff(self, update_stack_mock,
-                                             load_stack_mock,
-                                             parse_event_mock):
+    def test_should_call_all_necessary_stuff(
+            self, update_stack_mock, load_stack_mock, parse_event_mock):
         stack_update_parameter_mock = Mock()
         stack_update_parameter_mock.stack_name = STACK_NAME
         stack_update_parameter_mock.parameters = PARAMETER
@@ -76,6 +75,7 @@ class TestDeployStack(unittest.TestCase):
 
 
 class TestParseParameters(unittest.TestCase):
+
     def test_parse_valid_event(self):
         stack_update_parameters = parse_event(SAMPLE_EVENT)
 
@@ -120,7 +120,7 @@ class TestUpdateStack(unittest.TestCase):
             "region": "ANY_REGION",
             "parameters":
                 {"KeyOne": "UpdateValueOne"},
-            }
+        }
 
         self.expected_parameters = [
             {"ParameterKey": "KeyOne",
@@ -140,6 +140,15 @@ class TestUpdateStack(unittest.TestCase):
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'])
 
+    @patch('crassus.deployer.logger')
+    def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
+        update_parameters = StackUpdateParameter(self.update_parameters)
+        self.stack_mock.update.side_effect = ClientError(
+            {'Error': {'Code': 'ExpectedException', 'Message': ''}},
+            'test_deploy_stack_should_notify_error_in_case_of_client_error')
+        update_stack(self.stack_mock, update_parameters)
+        logger_mock.error.assert_called_once_with(ANY)
+
     """@patch('crassus.deployer.notify')
     def test_update_stack_should_notify_in_case_of_error(self, notify_mock):
         self.stack_mock.update.side_effect = ClientError(
@@ -152,6 +161,7 @@ class TestUpdateStack(unittest.TestCase):
 
 
 class TestLoadStack(unittest.TestCase):
+
     def setUp(self):
         self.patcher = patch('boto3.resource')
         self.resource_mock = self.patcher.start()
@@ -166,8 +176,15 @@ class TestLoadStack(unittest.TestCase):
 
     def test_deploy_stack_should_load_stack(self):
         load_stack('ANY_STACK')
-
         self.stack_mock.load.assert_called_once_with()
+
+    @patch('crassus.deployer.logger')
+    def test_stack_load_throws_clienterror_exception(self, logger_mock):
+        self.stack_mock.load.side_effect = ClientError(
+            {'Error': {'Code': 'ExpectedException', 'Message': ''}},
+            'test_deploy_stack_should_notify_error_in_case_of_client_error')
+        load_stack('ANY_STACK')
+        logger_mock.error.assert_called_once_with(ANY)
 
     """
     @patch('crassus.deployer.notify')
@@ -186,7 +203,7 @@ class TestMapCloudformationParameters(unittest.TestCase):
 
     def test_should_merge_all_parameters(self):
         update_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
-                             'ParameterValue': 'ANY_UPDATE_VALUE'}]
+                              'ParameterValue': 'ANY_UPDATE_VALUE'}]
         stack_parameters = [{'ParameterKey': 'ANY_UPDATE_KEY',
                              'ParameterValue': 'ANY_OLD_VALUE'},
                             {'ParameterKey': 'ANY_EXISTING_KEY',
@@ -218,6 +235,7 @@ class TestMapCloudformationParameters(unittest.TestCase):
 
 
 class TestStackUpdateParameters(unittest.TestCase):
+
     def setUp(self):
         self.input_message = {
             "version": 1,
