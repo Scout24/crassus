@@ -73,6 +73,7 @@ def set_properties_for_teamcity_builds(project):
         'publish',
         'package_lambda_code',
         'upload_zip_to_s3',
+        'build_json',
     ]
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
