@@ -1,6 +1,7 @@
-import boto3
-import logging
 import json
+import logging
+
+import boto3
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger('crassus-deployer')
@@ -77,6 +78,7 @@ def notify(message, notification_arn):
 
 
 class StackUpdateParameter(dict):
+
     def __init__(self, message):
         self.version = message['version']
         self.stack_name = message['stackName']
