@@ -11,15 +11,13 @@ Actual a SNS with a json payload is used to trigger crassus. The payload should 
 
 ```json
       {
+        "version": 1,
         "stackName": "sample-stack",
-        "notificationARN": "<NOTIFICATION ARN>",
         "region": "<AWS-REGION-ID>",
-        "params": [
-                    {
-                      "updateParameterKey": "<CFN PARAMETER>",
-                      "updateParameterValue": "<CFN PARAMETER VALUE>"
-                    }
-                 ]
+        "parameters": {
+            "parameter1": "value1",
+            "parameter2": "value2",
+        }
       }
 ```
 
@@ -39,15 +37,13 @@ Sample event as expected from deployer
         "SigningCertUrl": "<SIGNING URL>",
         "MessageId": "<MESSAGE ID>",
         "Message": "{
+        "version": 1,
         "stackName": "sample-stack",
-        "notificationARN": "<NOTIFICATION ARN>",
         "region": "eu-west-1",
-        "params": [
-                    {
+        "parameters": {
                       "updateParameterKey": "InstanceType",
                       "updateParameterValue": "t2.micro"
-                    }
-                  ]
+                  }
       }",
       "MessageAttributes": {
       },
