@@ -4,8 +4,6 @@
 import os
 
 from pybuilder.core import init, task, use_plugin
-# Heads up, description is overridden down below!
-from pybuilder.core import description as description_orig
 from pybuilder.vcs import VCSRevision
 
 use_plugin("python.core")
@@ -79,8 +77,7 @@ def set_properties_for_teamcity_builds(project):
                          os.environ.get('PYPIPROXY_URL'))
 
 
-@task
-@description_orig('Convert & upload CFN JSON from the template YAML files')
+@task(description='Convert & upload CFN JSON from the template YAML files')
 def build_json(project, logger):
     from cfn_sphere.aws.cloudformation.template_loader import (
         CloudFormationTemplateLoader)
