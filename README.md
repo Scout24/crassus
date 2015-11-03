@@ -41,8 +41,7 @@ Sample event as expected from deployer
         "stackName": "sample-stack",
         "region": "eu-west-1",
         "parameters": {
-                      "updateParameterKey": "InstanceType",
-                      "updateParameterValue": "t2.micro"
+                      "InstanceType": "t2.micro"
                   }
       }",
       "MessageAttributes": {
