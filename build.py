@@ -3,7 +3,9 @@
 
 import os
 
-from pybuilder.core import init, use_plugin
+from pybuilder.core import init, task, use_plugin
+# Heads up, description is overridden down below!
+from pybuilder.core import description as description_orig
 from pybuilder.vcs import VCSRevision
 
 use_plugin("python.core")
@@ -25,11 +27,22 @@ version = VCSRevision().get_git_revision_count()
 default_task = ['clean', 'analyze', 'package']
 
 
+def upload_helper(project, logger, bucket_name, keyname, data):
+    import boto3
+    s3 = boto3.resource('s3')
+    logger.info("Uploading cfn.json to bucket: '{0}' as key: '{1}'".
+                format(bucket_name, keyname))
+    acl = project.get_property('lambda_file_access_control')
+    s3.Bucket(bucket_name).put_object(
+        Key=keyname, Body=data, ACL=acl)
+
+
 @init
 def set_properties(project):
     project.depends_on("boto3")
     project.build_depends_on("unittest2")
     project.build_depends_on("mock")
+    project.build_depends_on("cfn-sphere")
     project.set_property('coverage_break_build', False)
     project.set_property(
         'bucket_name', os.environ.get('BUCKET_NAME_FOR_UPLOAD'))
@@ -63,3 +76,25 @@ def set_properties_for_teamcity_builds(project):
     ]
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
+
+
+@task
+@description_orig('Convert & upload CFN JSON from the template YAML files')
+def build_json(project, logger):
+    from cfn_sphere.aws.cloudformation.template_loader import (
+        CloudFormationTemplateLoader)
+    from cfn_sphere.aws.cloudformation.template_transformer import (
+        CloudFormationTemplateTransformer)
+
+    template = CloudFormationTemplateLoader.get_template_from_url(
+        'crassus.yaml', 'cfn-sphere/templates')
+    transformed = CloudFormationTemplateTransformer.transform_template(
+        template)
+    output = transformed.get_template_json()
+
+    bucket_name = project.get_property('bucket_name')
+    version_path = 'v{0}/{1}.json'.format(project.version, project.name)
+    latest_path = 'latest/{0}.json'.format(project.name)
+
+    upload_helper(project, logger, bucket_name, version_path, output)
+    upload_helper(project, logger, bucket_name, latest_path, output)
