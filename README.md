@@ -37,12 +37,12 @@ Sample event as expected from deployer
         "SigningCertUrl": "<SIGNING URL>",
         "MessageId": "<MESSAGE ID>",
         "Message": "{
-        "version": 1,
-        "stackName": "sample-stack",
-        "region": "eu-west-1",
-        "parameters": {
-                      "InstanceType": "t2.micro"
-                  }
+          "version": 1,
+          "stackName": "sample-stack",
+          "region": "eu-west-1",
+          "parameters": {
+            "InstanceType": "t2.micro"
+          }
       }",
       "MessageAttributes": {
       },
