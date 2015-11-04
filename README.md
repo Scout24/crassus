@@ -43,15 +43,15 @@ Sample event as expected from deployer
           "parameters": {
             "InstanceType": "t2.micro"
           }
-      }",
-      "MessageAttributes": {
-      },
-      "Type": "Notification",
-      "UnsubscribeUrl": "<UNSUBSCRIBE URL>",
-      "TopicArn": "<TOPIC ARN>",
-      "Subject": None
+        }",
+        "MessageAttributes": {
+        },
+        "Type": "Notification",
+        "UnsubscribeUrl": "<UNSUBSCRIBE URL>",
+        "TopicArn": "<TOPIC ARN>",
+        "Subject": None
+      }
     }
-  }
   ]
 }
 ```
