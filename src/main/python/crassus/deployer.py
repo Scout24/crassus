@@ -53,22 +53,6 @@ def update_stack(stack, stack_update_parameters):
         logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
 
 
-def merge_stack_parameters(update_parameters, stack_parameters):
-    merged_stack_parameters = []
-
-    for stack_parameter in stack_parameters:
-        for update_parameter in update_parameters:
-            if update_parameter['ParameterKey'] in stack_parameter.values():
-                update_parameter['UsePreviousValue'] = False
-                merged_stack_parameters.append(update_parameter)
-            else:
-                stack_parameter['UsePreviousValue'] = True
-                del stack_parameter['ParameterValue']
-                merged_stack_parameters.append(stack_parameter)
-
-    return merged_stack_parameters
-
-
 def notify(message, notification_arn):
     sns = boto3.resource('sns')
     notification_topic = sns.Topic(notification_arn)
