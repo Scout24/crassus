@@ -77,7 +77,7 @@ def set_properties_for_teamcity_builds(project):
                          os.environ.get('PYPIPROXY_URL'))
 
 
-@task(description='Convert & upload CFN JSON from the template YAML files')
+@task('build_json', description='Convert & upload CFN JSON from the template YAML files')
 def build_json(project, logger):
     from cfn_sphere.aws.cloudformation.template_loader import (
         CloudFormationTemplateLoader)
