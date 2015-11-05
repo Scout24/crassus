@@ -127,26 +127,26 @@ Resources:
       SourceArn:
         Ref: inputSnsTopic
   OutputSqsPolicy:
-      Type: "AWS::SQS::QueuePolicy"
-      Properties:
-        PolicyDocument:
-          Version: "2012-10-17"
-          Id: OutputSqsPolicy
-          Statement:
-            -
-              Sid: "Allow-SendMessage-to-outputSqsQueue-from-outputSnsTopic"
-              Effect: "Allow"
-              Principal: "*"
-              Action:
-                - "sqs:SendMessage"
-              Resource: "*"
-              Condition:
-                ArnEquals:
-                  aws:SourceArn:
-                    Ref: outputSnsTopic
-        Queues:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Id: OutputSqsPolicy
+        Statement:
           -
-            Ref: outputSqsQueue
+            Sid: "Allow-SendMessage-to-outputSqsQueue-from-outputSnsTopic"
+            Effect: "Allow"
+            Principal: "*"
+            Action:
+              - "sqs:SendMessage"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  Ref: outputSnsTopic
+      Queues:
+        -
+          Ref: outputSqsQueue
   OutputSqsReceivePolicy:
       Type: "AWS::SQS::QueuePolicy"
       Properties:
