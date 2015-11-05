@@ -5,6 +5,10 @@ Outputs:
     Description: Topic ARN to send stack update messages to
     Value:
       Ref: inputSnsTopic
+  outputSnsTopicARN:
+    Description: Topic ARN to receive messages from CFN/lambdas
+    Value:
+      Ref: outputSnsTopic
   lambdaFunctionName:
     Description: Name of the crassus Lambda function, to be used in seperate API call to allow
       subscription to input SNS topic
@@ -28,7 +32,7 @@ Resources:
   inputSnsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: Topic to update a CFN Stack
+      DisplayName: Topic ARN to send stack update messages to
       Subscription:
       - Endpoint:
           Fn::GetAtt:
@@ -36,7 +40,17 @@ Resources:
           - Arn
         Protocol: lambda
       TopicName:
-        Ref: AWS::StackName
+        '|join|-':
+          - Ref: AWS::StackName
+          - input
+  outputSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Topic ARN to receive messages from CFN/lambdas
+      TopicName:
+        '|join|-':
+          - Ref: AWS::StackName
+          - output
   inputSnsTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
