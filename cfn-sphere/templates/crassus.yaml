@@ -51,6 +51,13 @@ Resources:
         '|join|-':
           - Ref: AWS::StackName
           - output
+      Subscription:
+        -
+          Endpoint:
+            Fn::GetAtt:
+              - outputSqsQueue
+              - Arn
+          Protocol: sqs
   inputSnsTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
@@ -119,3 +126,24 @@ Resources:
       Principal: sns.amazonaws.com
       SourceArn:
         Ref: inputSnsTopic
+  OutputSqsPolicy:
+      Type: "AWS::SQS::QueuePolicy"
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Id: OutputSqsPolicy
+          Statement:
+            -
+              Sid: "Allow-SendMessage-to-outputSqsQueue-from-outputSnsTopic"
+              Effect: "Allow"
+              Principal: "*"
+              Action:
+                - "sqs:SendMessage"
+              Resource: "*"
+              Condition:
+                ArnEquals:
+                  aws:SourceArn:
+                    Ref: outputSnsTopic
+        Queues:
+          -
+            Ref: outputSqsQueue
