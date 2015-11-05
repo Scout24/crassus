@@ -66,6 +66,13 @@ Resources:
         Version: '2012-10-17'
       Topics:
       - Ref: inputSnsTopic
+  outputSqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName:
+        '|join|-':
+          - Ref: AWS::StackName
+          - output
   stackUpdateRole:
     Type: AWS::IAM::Role
     Properties:
