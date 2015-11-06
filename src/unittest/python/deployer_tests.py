@@ -7,7 +7,8 @@ from moto import mock_sns
 
 from crassus.deployer import (
     parse_event, load_stack, update_stack, deploy_stack, notify,
-    NOTIFICATION_SUBJECT, StackUpdateParameter, init_output_sns_topic)
+    NOTIFICATION_SUBJECT, StackUpdateParameter, init_output_sns_topic,
+    ResultMessage,)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -268,3 +269,12 @@ class TestInitOutputSnsTopic(unittest.TestCase):
         logger_mock.error.assert_called_once_with(ANY)
         self.assertIsNone(received)
 
+
+class TestResultMessage(unittest.TestCase):
+
+    def test_constructor(self):
+        result_message = ResultMessage('my_status', 'my_message')
+        self.assertEqual(result_message['version'], '1.0')
+        self.assertEqual(result_message['status'], 'my_status')
+        self.assertEqual(result_message['message'], 'my_message')
+        self.assertNotEqual(result_message['message'], 'NO_SUCH_MESSAGE')
