@@ -52,11 +52,13 @@ SAMPLE_EVENT = {
 
 class TestDeployStack(unittest.TestCase):
 
+    @patch('crassus.deployer.init_output_sns_topic')
     @patch('crassus.deployer.parse_event')
     @patch('crassus.deployer.load_stack')
     @patch('crassus.deployer.update_stack')
     def test_should_call_all_necessary_stuff(
-            self, update_stack_mock, load_stack_mock, parse_event_mock):
+            self, update_stack_mock, load_stack_mock, parse_event_mock,
+            init_mock):
         stack_update_parameter_mock = Mock()
         stack_update_parameter_mock.stack_name = STACK_NAME
         stack_update_parameter_mock.parameters = PARAMETER
