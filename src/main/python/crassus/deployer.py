@@ -51,8 +51,8 @@ def load_stack(stack_name):
         stack.load()
     except ClientError as error:
         logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
-
-    return stack
+    else:
+        return stack
 
 
 def update_stack(stack, stack_update_parameters):
