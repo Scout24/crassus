@@ -148,21 +148,21 @@ Resources:
         -
           Ref: outputSqsQueue
   OutputSqsReceivePolicy:
-      Type: "AWS::SQS::QueuePolicy"
-      Properties:
-        PolicyDocument:
-          Version: "2012-10-17"
-          Id: OutputSqsReceivePolicy
-          Statement:
-            -
-              Sid: "Allow-ReceiveMessage-from-outputSqsQueue"
-              Effect: "Allow"
-              Principal:
-                AWS:
-                  Ref: triggeringUserArn
-              Action:
-                - "sqs:ReceiveMessage"
-              Resource: "*"
-        Queues:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Id: OutputSqsReceivePolicy
+        Statement:
           -
-            Ref: outputSqsQueue
+            Sid: "Allow-ReceiveMessage-from-outputSqsQueue"
+            Effect: "Allow"
+            Principal:
+              AWS:
+                Ref: triggeringUserArn
+            Action:
+              - "sqs:ReceiveMessage"
+            Resource: "*"
+      Queues:
+        -
+          Ref: outputSqsQueue
