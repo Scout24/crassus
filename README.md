@@ -55,3 +55,10 @@ Sample event as expected from deployer
   ]
 }
 ```
+## Deploy the Deployer
+
+One possibility to deploy crassus is to use CloudFormation.
+
+To do it the simple way take a look at [cfn-sphere](https://github.com/marco-hoyer/cfn-sphere)
+
+In ``cfn-sphere`` directory you can find the template and configuration file for cfn-sphere usage.
