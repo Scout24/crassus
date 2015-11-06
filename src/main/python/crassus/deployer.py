@@ -101,3 +101,13 @@ class StackUpdateParameter(dict):
                     merged_stack_parameters.append(stack_parameter)
 
         return merged_stack_parameters
+
+
+class ResultMessage(dict):
+
+    version = '1.0'
+
+    def __init__(self, status, message):
+        self['version'] = self.version
+        self['status'] = status
+        self['message'] = message
