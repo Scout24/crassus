@@ -38,6 +38,7 @@ def upload_helper(project, logger, bucket_name, keyname, data):
 @init
 def set_properties(project):
     project.depends_on("boto3")
+    project.build_depends_on("moto")
     project.build_depends_on("unittest2")
     project.build_depends_on("mock")
     project.build_depends_on("cfn-sphere")

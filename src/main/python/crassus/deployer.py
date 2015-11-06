@@ -13,8 +13,12 @@ NOTIFICATION_SUBJECT = 'Crassus deployer notification'
 MESSAGE_STACK_NOT_FOUND = 'Stack not found {0}: {1}'
 MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
 
+output_sns_topic = None
+
 
 def deploy_stack(event, context):
+    global output_sns_topic
+    output_sns_topic = init_output_sns_topic()
     logger.debug('Received event: %s', event)
     stack_update_parameters = parse_event(event)
     logger.debug('Extracted: %s', stack_update_parameters)
@@ -22,6 +26,16 @@ def deploy_stack(event, context):
     logger.debug('Found stack: %s', stack)
 
     update_stack(stack, stack_update_parameters)
+
+
+def init_output_sns_topic():
+    sns = boto3.resource('sns')
+    topics = [topic for topic in sns.topics.all()
+              if topic.arn.endswith(":crassus-output")]
+    if len(topics) != 1:
+        logger.error('Unable to find the output SNS topic')
+    else:
+        return topics[0]
 
 
 def parse_event(event):

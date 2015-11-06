@@ -1,16 +1,13 @@
 import unittest
-from crassus.deployer import (
-    parse_event,
-    load_stack,
-    update_stack,
-    deploy_stack,
-    notify,
-    NOTIFICATION_SUBJECT,
-    StackUpdateParameter,
-)
 
-from botocore.exceptions import ClientError
+import boto3
 from mock import Mock, patch, ANY
+from botocore.exceptions import ClientError
+from moto import mock_sns
+
+from crassus.deployer import (
+    parse_event, load_stack, update_stack, deploy_stack, notify,
+    NOTIFICATION_SUBJECT, StackUpdateParameter, init_output_sns_topic)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -247,3 +244,27 @@ class TestStackUpdateParameters(unittest.TestCase):
                             "ParameterValue": "VALUE2"}]
         sup = StackUpdateParameter(input_message)
         self.assertEqual(sup.merge(stack_parameter), expected_output)
+
+
+class TestInitOutputSnsTopic(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_sns_here = mock_sns()
+        self.mock_sns_here.start()
+
+    def tearDown(self):
+        self.mock_sns_here.stop()
+
+    def test_should_get_sns_output_topic(self):
+        sns = boto3.resource('sns')
+        name = 'crassus-output'
+        sns.create_topic(Name=name)
+        received = init_output_sns_topic()
+        self.assertTrue(received.arn.endswith(name))
+
+    @patch('crassus.deployer.logger')
+    def test_should_error_if_no_such_topic(self, logger_mock):
+        received = init_output_sns_topic()
+        logger_mock.error.assert_called_once_with(ANY)
+        self.assertIsNone(received)
+
