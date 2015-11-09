@@ -111,3 +111,30 @@ class ResultMessage(dict):
         self['version'] = self.version
         self['status'] = status
         self['message'] = message
+
+
+class Crassus(object):
+
+    def __init__(self, event, context):
+        self.event = event
+        self.context = context
+        self.cfn = boto3.resource('cloudformation')
+        self.sns = boto3.resource('sns')
+
+    def notifiy_success(self, message):
+        pass
+
+    def notify_failure(self, message):
+        pass
+
+    def notify(self, status, message):
+        pass
+
+    def load(self):
+        pass
+
+    def update(self):
+        pass
+
+    def deploy(self):
+        pass
