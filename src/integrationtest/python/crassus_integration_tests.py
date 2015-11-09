@@ -2,6 +2,7 @@ from __future__ import print_function
 import uuid
 import unittest
 import json
+from time import sleep
 
 import re
 import boto3
@@ -23,8 +24,23 @@ class CrassusIntegrationTest(unittest.TestCase):
             })
 
         self.invoker_role_name = "crassus-invoker-it-{0}".format(uuid.uuid1())
-        self.invoker_role = self.iam_client.create_role(RoleName=self.invoker_role_name,
-                                                        AssumeRolePolicyDocument=policy)
+        iam_service = boto3.resource('iam')
+        self.invoker_role = iam_service.create_role(RoleName=self.invoker_role_name,
+                                                    AssumeRolePolicyDocument=policy)
+
+        sleep(10)
+
+        sts_client = boto3.client('sts')
+        print("role arn: {0}".format(self.invoker_role.arn))
+        credentials = sts_client.assume_role(RoleArn=self.invoker_role.arn,
+                                             RoleSessionName="{0}".format(uuid.uuid1()))['Credentials']
+
+        # ec2 = boto3.client(service_name="ec2", region_name='eu-west-1',
+        #              aws_access_key_id=credentials['AccessKeyId'],
+        #              aws_secret_access_key=credentials['SecretAccessKey'],
+        #              aws_session_token=credentials['SessionToken'])
+        # print(ec2.describe_instances())
+
 
 
     def test_create_stacks_and_update(self):
