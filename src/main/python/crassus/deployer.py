@@ -61,6 +61,7 @@ def load_stack(stack_name):
         stack.load()
     except ClientError as error:
         logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
+        notify(STATUS_FAILURE, error.message)
     else:
         return stack
 
@@ -70,8 +71,8 @@ def update_stack(stack, stack_update_parameters):
     try:
         stack.update(
             UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                'CAPABILITY_IAM',
-            ])
+                'CAPABILITY_IAM',], NotificationARNs=output_sns_topics)
+        notify(STATUS_SUCCESS, "Cloudformation was triggered successfully.")
     except ClientError as error:
         logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
         notify(STATUS_FAILURE, error.message)

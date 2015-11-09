@@ -107,6 +107,7 @@ class TestNotify(unittest.TestCase):
     def test_should_do_gracefully_nothing(self):
         notify('status', 'message')
 
+
 class TestUpdateStack(unittest.TestCase):
 
     def setUp(self):
@@ -137,6 +138,8 @@ class TestUpdateStack(unittest.TestCase):
              }
         ]
 
+    @patch('crassus.deployer.output_sns_topics', ['ANY_TOPIC'])
+    @patch('crassus.deployer.notify', Mock())
     def test_update_stack_should_call_update(self):
         update_parameters = StackUpdateParameter(self.update_parameters)
         update_stack(self.stack_mock, update_parameters)
@@ -144,7 +147,9 @@ class TestUpdateStack(unittest.TestCase):
         self.stack_mock.update.assert_called_once_with(
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
-            Capabilities=['CAPABILITY_IAM'])
+            Capabilities=['CAPABILITY_IAM'],
+            NotificationARNs=['ANY_TOPIC'])
+
 
     @patch('crassus.deployer.logger')
     def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
