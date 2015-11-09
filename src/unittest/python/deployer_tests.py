@@ -1,4 +1,5 @@
 import unittest
+from textwrap import dedent
 
 import boto3
 from mock import Mock, patch, ANY
@@ -82,9 +83,10 @@ class TestParseParameters(unittest.TestCase):
 
 
 class TestNotify(unittest.TestCase):
+    STATUS = 'success'
     MESSAGE = 'ANY MESSAGE'
-    NOTIFICATION_ARN = 'ANY_NOTIFICATION_ARN'
 
+    @patch('crassus.deployer.output_sns_topics', ['ANY_ARN'])
     @patch('boto3.resource')
     def test_should_notify_sns(self, resource_mock):
         topic_mock = Mock()
@@ -92,13 +94,18 @@ class TestNotify(unittest.TestCase):
         sns_mock.Topic.return_value = topic_mock
         resource_mock.return_value = sns_mock
 
-        notify(self.MESSAGE, self.NOTIFICATION_ARN)
+        notify(self.STATUS, self.MESSAGE)
 
         topic_mock.publish.assert_called_once_with(
-            Message=self.MESSAGE,
+            Message=('{"status": "success", '
+                     '"message": "ANY MESSAGE", '
+                     '"version": "1.0"}'),
             Subject=NOTIFICATION_SUBJECT,
             MessageStructure='string')
 
+    @patch('crassus.deployer.output_sns_topics', None)
+    def test_should_do_gracefully_nothing(self):
+        notify('status', 'message')
 
 class TestUpdateStack(unittest.TestCase):
 
@@ -252,24 +259,44 @@ class TestStackUpdateParameters(unittest.TestCase):
 class TestInitOutputSnsTopic(unittest.TestCase):
 
     def setUp(self):
-        self.mock_sns_here = mock_sns()
-        self.mock_sns_here.start()
+        self.patcher = patch('boto3.client')
+        self.boto3_client = self.patcher.start()
+        self.context_mock = Mock(invoked_function_arn="any_arn",
+                                 function_version="any_version")
 
     def tearDown(self):
-        self.mock_sns_here.stop()
+        self.patcher.stop()
 
-    def test_should_get_sns_output_topic(self):
-        sns = boto3.resource('sns')
-        name = 'crassus-output'
-        sns.create_topic(Name=name)
-        received = init_output_sns_topic()
-        self.assertTrue(received.arn.endswith(name))
+    def test_init_output_sns_topic_returns_arn_list(self):
+        self.boto3_client().get_function_configuration.return_value = {
+            'Description': dedent("""
+                {"topic_list":[
+                    "arn:aws:sns:eu-west-1:123456789012:crassus-output",
+                    "arn:aws:sns:eu-west-1:123456789012:random-topic"
+                    ]}""")
+        }
+        topic_list = init_output_sns_topic(self.context_mock)
+        expected = ["arn:aws:sns:eu-west-1:123456789012:crassus-output",
+                    "arn:aws:sns:eu-west-1:123456789012:random-topic", ]
+        self.assertEqual(expected, topic_list)
 
     @patch('crassus.deployer.logger')
-    def test_should_error_if_no_such_topic(self, logger_mock):
-        received = init_output_sns_topic()
+    def test_init_output_sns_topic_handles_value_error(self, logger_mock):
+        self.boto3_client().get_function_configuration.return_value = {
+            'Description': "NO_SUCH_JSON"
+        }
+        topic_list = init_output_sns_topic(self.context_mock)
+        self.assertEqual(None, topic_list)
         logger_mock.error.assert_called_once_with(ANY)
-        self.assertIsNone(received)
+
+    @patch('crassus.deployer.logger')
+    def test_init_output_sns_topic_handles_key_error(self, logger_mock):
+        self.boto3_client().get_function_configuration.return_value = {
+            'Description': '{"key": "value"}'
+        }
+        topic_list = init_output_sns_topic(self.context_mock)
+        self.assertEqual(None, topic_list)
+        logger_mock.error.assert_called_once_with(ANY)
 
 
 class TestResultMessage(unittest.TestCase):

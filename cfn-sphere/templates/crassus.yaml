@@ -109,7 +109,15 @@ Resources:
           Ref: bucketName
         S3Key:
           Ref: zipFile
-      Description: updates a stack using cloudformation
+      Description:
+        Fn::Join:
+          - ""
+          -
+            - '{'
+            - '"topic_list":["'
+            - Ref: outputSnsTopic
+            - '"]'
+            - '}'
       Handler: crassus_deployer_lambda.handler
       Role:
         Fn::GetAtt:
