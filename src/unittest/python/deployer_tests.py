@@ -97,11 +97,13 @@ class TestNotify(unittest.TestCase):
         notify(self.STATUS, self.MESSAGE)
 
         topic_mock.publish.assert_called_once_with(
-            Message=('{"status": "success", '
-                     '"message": "ANY MESSAGE", '
-                     '"version": "1.0"}'),
+            Message=ANY,
             Subject=NOTIFICATION_SUBJECT,
             MessageStructure='string')
+        import json
+        kwargs = topic_mock.publish.call_args[1]
+        expected = ResultMessage(self.STATUS, self.MESSAGE)
+        self.assertEqual(expected, json.loads(kwargs['Message']))
 
     @patch('crassus.deployer.output_sns_topics', None)
     def test_should_do_gracefully_nothing(self):
@@ -149,7 +151,6 @@ class TestUpdateStack(unittest.TestCase):
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
             NotificationARNs=['ANY_TOPIC'])
-
 
     @patch('crassus.deployer.logger')
     def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
