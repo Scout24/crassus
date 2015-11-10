@@ -8,7 +8,6 @@ from pybuilder.vcs import VCSRevision
 
 use_plugin("python.core")
 use_plugin("python.unittest")
-use_plugin("python.integrationtest")
 use_plugin("python.install_dependencies")
 use_plugin("python.flake8")
 use_plugin("pypi:pybuilder_aws_lambda_plugin")
@@ -77,6 +76,15 @@ def set_properties_for_teamcity_builds(project):
     ]
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
+
+
+@init(environments='integration_env')
+def set_properties_for_teamcity_builds(project):
+    # project.version = '%s-%s' % (project.version,
+    #                              os.environ.get('BUILD_NUMBER', 0))
+    use_plugin("python.integrationtest")
+    project.set_property(
+        'install_dependencies_index_url', os.environ.get('PYPIPROXY_URL'))
 
 
 @task('build_json', description='Convert & upload CFN JSON from the template YAML files')
