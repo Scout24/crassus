@@ -13,19 +13,17 @@ from cfn_sphere.main import StackActionHandler
 import re
 import boto3
 
-
-logging.basicConfig(format='%(asctime)s %(thread)d %(threadName)s %(levelname)s %(module)s: %(message)s',
-                    datefmt='%d.%m.%Y %H:%M:%S')
+logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)s %(module)s: %(message)s',
+                    datefmt='%d.%m.%Y %H:%M:%S',
+                    stream=sys.stdout)
 logger = logging.getLogger()
 logger.level = logging.INFO
-stream_handler = logging.StreamHandler(sys.stdout)
-logger.addHandler(stream_handler)
 
 
 class CreateStack(threading.Thread):
 
-    def __init__(self, stack_config):
-        super(CreateStack, self).__init__()
+    def __init__(self, thread_name, stack_config):
+        super(CreateStack, self).__init__(name=thread_name)
         self.stack_config = stack_config
 
     def run(self):
@@ -88,20 +86,10 @@ class CrassusIntegrationTest(unittest.TestCase):
                 }
             }
         })
-        crassus_stack_creation = CreateStack(crassus_config)
+        crassus_stack_creation = CreateStack("CrassusCreationThread", crassus_config)
         crassus_stack_creation.start()
 
-        ec2_client = boto3.client("ec2")
-        vpc_id = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
-        subnet_ids = []
-        subnets = ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])['Subnets']
-        for subnet in subnets:
-            subnet_ids.append(subnet['SubnetId'])
-
-        subnet_ids_parmater = ",".join(subnet_ids)
-
-        print("vpcId: {0}".format(vpc_id))
-        print("subnet: {0}".format(subnet_ids_parmater))
+        subnet_ids, vpc_id = self.get_vpc_and_subnets()
 
         self.app_stack_name = "app-{0}".format(self.test_id)
         app_config = Config(config_dict={
@@ -111,20 +99,30 @@ class CrassusIntegrationTest(unittest.TestCase):
                     "template-url": "s3://is24-python-docker-hello-world-webapp/latest/ecs-minimal-webapp.json",
                     "parameters": {
                         "vpcId": vpc_id,
-                        "subnetIds": subnet_ids_parmater,
+                        "subnetIds": subnet_ids,
                         "dockerImageVersion": "15"
                     }
                 }
             }
         })
 
-        app_stack_creation = CreateStack(app_config)
+        app_stack_creation = CreateStack("AppCreationThread", app_config)
         app_stack_creation.start()
 
         crassus_stack_creation.join()
         app_stack_creation.join()
 
         self.assume_role()
+
+    def get_vpc_and_subnets(self):
+        ec2_client = boto3.client("ec2")
+        vpc_id = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
+        subnet_ids = []
+        subnets = ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])['Subnets']
+        for subnet in subnets:
+            subnet_ids.append(subnet['SubnetId'])
+        subnet_ids_parmater = ",".join(subnet_ids)
+        return subnet_ids_parmater, vpc_id
 
     def tearDown(self):
         try:
