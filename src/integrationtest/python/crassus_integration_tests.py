@@ -97,7 +97,7 @@ class CrassusIntegrationTest(unittest.TestCase):
         crassus_stack_creation = CreateStack("CrassusCreationThread", crassus_config)
         crassus_stack_creation.start()
 
-        subnet_ids, vpc_id = self.get_vpc_and_subnets()
+        subnet_ids, vpc_id = self.get_first_vpc_and_subnets()
 
         self.app_stack_name = "app-{0}".format(self.test_id)
         app_config = Config(config_dict={
@@ -136,7 +136,7 @@ class CrassusIntegrationTest(unittest.TestCase):
         }
         cfn_client = boto3.client('cloudformation')
 
-        crassus_stack_outputs = cfn_client.describe_stacks(StackName=self.test_id)[0]['Outputs']
+        crassus_stack_outputs = cfn_client.describe_stacks(StackName=self.test_id)['Stacks'][0]['Outputs']
         for output in crassus_stack_outputs:
             if output['OutputKey'] == "inputSnsTopicARN":
                 crassus_input_topic_arn = output['OutputValue']
@@ -147,7 +147,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             crassus_input_topic_arn, message, message_id
         ))
 
-    def get_vpc_and_subnets(self):
+    def get_first_vpc_and_subnets(self):
         ec2_client = boto3.client("ec2")
         vpc_id = ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
         subnet_ids = []
