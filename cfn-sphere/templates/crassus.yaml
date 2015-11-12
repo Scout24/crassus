@@ -9,6 +9,10 @@ Outputs:
     Description: Topic ARN to receive messages from CFN/lambdas
     Value:
       Ref: outputSnsTopic
+  outputSqsQueue:
+    Description: SQS queue URL for receiving messages from crassus
+    Value:
+      Ref: outputSqsQueue
   lambdaFunctionName:
     Description: Name of the crassus Lambda function, to be used in seperate API call to allow
       subscription to input SNS topic
