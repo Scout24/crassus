@@ -54,6 +54,23 @@ class CrassusIntegrationTest(unittest.TestCase):
         self.cfn_client = boto3.client('cloudformation')
         self.ec2_client = boto3.client("ec2")
 
+    def tearDown(self):
+        self.delete_invoker_role()
+        self.delete_stack(self.crassus_stack_name)
+        self.delete_stack(self.app_stack_name)
+
+    def test_create_stacks_and_update(self):
+        invoker_role = self.create_invoker_role()
+
+        stack = self.create_crassus_stack(invoker_role.arn)
+        app_stack = self.create_app_stack()
+        stack.join()
+        app_stack.join()
+
+        self.send_update_message(invoker_role)
+
+        self.assert_update_successful()
+
     def create_invoker_role(self):
         current_account = re.compile('arn:aws:iam::(\d{12}):.*')\
             .match(self.iam_client.list_roles()['Roles'][0]['Arn']).group(1)
@@ -95,19 +112,7 @@ class CrassusIntegrationTest(unittest.TestCase):
 
         return credentials
 
-    def test_create_stacks_and_update(self):
-        invoker_role = self.create_invoker_role()
-
-        stack = self.create_crassus_stack(invoker_role.arn)
-        app_stack = self.create_app_stack()
-        stack.join()
-        app_stack.join()
-
-        self.send_update_message(invoker_role)
-
-        self.assertTrue(self.check_update_successful())
-
-    def check_update_successful(self):
+    def assert_update_successful(self):
         hello_world_url = self.get_stack_output(self.app_stack_name,
                                                 "WebsiteURL")
         update_successful = False
@@ -119,7 +124,8 @@ class CrassusIntegrationTest(unittest.TestCase):
                 break
             else:
                 sleep(10)
-        return update_successful
+
+        self.assertTrue(update_successful)
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
@@ -210,11 +216,6 @@ class CrassusIntegrationTest(unittest.TestCase):
             subnet_ids.append(subnet['SubnetId'])
         subnet_ids_paramater = ",".join(subnet_ids)
         return subnet_ids_paramater, vpc_id
-
-    def tearDown(self):
-        self.delete_invoker_role()
-        self.delete_stack(self.crassus_stack_name)
-        self.delete_stack(self.app_stack_name)
 
     def delete_invoker_role(self):
         self.ignore_client_error(lambda:
