@@ -44,6 +44,9 @@ class CrassusIntegrationTest(unittest.TestCase):
             .format(socket.gethostname(),
                     datetime.utcnow().strftime("%Y%m%d%H%M%S"))
         self.invoker_role_name = "crassus-invoker-it-{0}".format(self.test_id)
+        self.crassus_stack_name = self.test_id
+        self.app_stack_name = "app-{0}".format(self.test_id)
+
         logger.info("running with test id: {0}".format(self.test_id))
 
         self.iam_client = boto3.client('iam')
@@ -102,11 +105,12 @@ class CrassusIntegrationTest(unittest.TestCase):
 
         self.send_update_message(invoker_role)
 
+        self.assertTrue(self.check_update_successful())
+
+    def check_update_successful(self):
         hello_world_url = self.get_stack_output(self.app_stack_name,
                                                 "WebsiteURL")
-
         update_successful = False
-
         for i in range(0, 30):
             hello_world = urllib2.urlopen(hello_world_url).read()
             if re.compile('.*?python-docker-hello-world-webapp 40.*').match(
@@ -115,8 +119,7 @@ class CrassusIntegrationTest(unittest.TestCase):
                 break
             else:
                 sleep(10)
-
-        self.assertTrue(update_successful)
+        return update_successful
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
@@ -134,7 +137,7 @@ class CrassusIntegrationTest(unittest.TestCase):
                 "dockerImageVersion": "40"
             }
         }
-        crassus_input_topic_arn = self.get_stack_output(self.test_id,
+        crassus_input_topic_arn = self.get_stack_output(self.crassus_stack_name,
                                                         "inputSnsTopicARN")
 
         message_id = sns_client.publish(TopicArn=crassus_input_topic_arn,
@@ -162,7 +165,6 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def create_app_stack(self):
         subnet_ids, vpc_id = self.get_first_vpc_and_subnets()
-        self.app_stack_name = "app-{0}".format(self.test_id)
         app_config = Config(config_dict={
             "region": REGION_NAME,
             "stacks": {
@@ -184,7 +186,7 @@ class CrassusIntegrationTest(unittest.TestCase):
         crassus_config = Config(config_dict={
             "region": REGION_NAME,
             "stacks": {
-                self.test_id: {
+                self.crassus_stack_name: {
                     "template-url": "s3://crassus-lambda-zips/latest/crassus.json",
                     "parameters": {
                         "zipFile": "latest/crassus.zip",
@@ -211,7 +213,7 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def tearDown(self):
         self.delete_invoker_role()
-        self.delete_stack(self.test_id)
+        self.delete_stack(self.crassus_stack_name)
         self.delete_stack(self.app_stack_name)
 
     def delete_invoker_role(self):
