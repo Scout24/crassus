@@ -2,14 +2,12 @@ import unittest
 from textwrap import dedent
 
 import boto3
-from mock import Mock, patch, ANY
 from botocore.exceptions import ClientError
-from moto import mock_sns
+from mock import ANY, Mock, patch
 
 from crassus.deployer import (
-    parse_event, load_stack, update_stack, deploy_stack, notify,
-    NOTIFICATION_SUBJECT, StackUpdateParameter, init_output_sns_topic,
-    ResultMessage,)
+    NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter, deploy_stack,
+    init_output_sns_topic, load_stack, notify, parse_event, update_stack)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'

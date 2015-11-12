@@ -1,26 +1,28 @@
 from __future__ import print_function
-import socket
-import unittest
+
 import json
-from datetime import datetime
 import logging
+import re
+import socket
 import sys
 import threading
+import unittest
 import urllib2
+from datetime import datetime
 from time import sleep
 
+import boto3
 from botocore.exceptions import ClientError
 from cfn_sphere.config import Config
 from cfn_sphere.main import StackActionHandler
-import re
-import boto3
 
 REGION_NAME = 'eu-west-1'
 SNS_FULL_ACCESS = "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
 
-logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)s %(module)s: %(message)s',
-                    datefmt='%d.%m.%Y %H:%M:%S',
-                    stream=sys.stdout)
+logging.basicConfig(
+    format='%(asctime)s %(threadName)s %(levelname)s %(module)s: %(message)s',
+    datefmt='%d.%m.%Y %H:%M:%S',
+    stream=sys.stdout)
 logger = logging.getLogger()
 logger.level = logging.INFO
 
@@ -72,16 +74,19 @@ class CrassusIntegrationTest(unittest.TestCase):
         return invoker_role
 
     def assume_role(self, invoker_role):
-        credentials = self.sts_client.assume_role(RoleArn=invoker_role.arn,
-                                             RoleSessionName="{0}".format(self.test_id))['Credentials']
+        credentials = self.sts_client.assume_role(
+            RoleArn=invoker_role.arn, RoleSessionName="{0}".format(
+                self.test_id))['Credentials']
 
         ec2 = boto3.client(service_name="ec2", region_name=REGION_NAME,
                            aws_access_key_id=credentials['AccessKeyId'],
-                           aws_secret_access_key=credentials['SecretAccessKey'],
+                           aws_secret_access_key=credentials[
+                               'SecretAccessKey'],
                            aws_session_token=credentials['SessionToken'])
         try:
             ec2.describe_instances()
-            self.fail("Should not be allowed for role: {0}".format(invoker_role.arn))
+            self.fail(
+                "Should not be allowed for role: {0}".format(invoker_role.arn))
         except ClientError as e:
             logger.debug("Expected error: {0}".format(e))
 
@@ -100,17 +105,18 @@ class CrassusIntegrationTest(unittest.TestCase):
         hello_world_url = self.get_stack_output(self.app_stack_name,
                                                 "WebsiteURL")
 
-        update_succesful = False
+        update_successful = False
 
-        for i in range(0, 300):
+        for i in range(0, 30):
             hello_world = urllib2.urlopen(hello_world_url).read()
             if re.compile('.*?python-docker-hello-world-webapp 40.*').match(
                     hello_world):
-                update_succesful = True
+                update_successful = True
+                break
             else:
                 sleep(10)
 
-        self.assertTrue(update_succesful)
+        self.assertTrue(update_successful)
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
@@ -139,15 +145,14 @@ class CrassusIntegrationTest(unittest.TestCase):
             ))
 
     def get_stack_output(self, stack_name, output_name):
-        crassus_stack_outputs = \
-            self.cfn_client.describe_stacks(StackName=stack_name)['Stacks'][0][
-                'Outputs']
+        stack_outputs = self.cfn_client.describe_stacks(
+            StackName=stack_name)['Stacks'][0]['Outputs']
 
         output_value = None
 
-        for output in crassus_stack_outputs:
-            if output['OutputKey'] == output_name:
-                output_value = output['OutputValue']
+        for output_item in stack_outputs:
+            if output_item['OutputKey'] == output_name:
+                output_value = output_item['OutputValue']
 
         if output_value is None:
             raise Exception("Stack with name: {0} does not have output: {1}"
@@ -198,11 +203,11 @@ class CrassusIntegrationTest(unittest.TestCase):
         vpc_id = self.ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
         subnet_ids = []
         subnets = self.ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id',
-                                                         'Values': [vpc_id]}])['Subnets']
+                                                             'Values': [vpc_id]}])['Subnets']
         for subnet in subnets:
             subnet_ids.append(subnet['SubnetId'])
-        subnet_ids_parmater = ",".join(subnet_ids)
-        return subnet_ids_parmater, vpc_id
+        subnet_ids_paramater = ",".join(subnet_ids)
+        return subnet_ids_paramater, vpc_id
 
     def tearDown(self):
         self.delete_invoker_role()
@@ -218,14 +223,15 @@ class CrassusIntegrationTest(unittest.TestCase):
                                  self.iam_client.delete_role(
                                      RoleName=self.invoker_role_name))
 
-    def ignore_client_error(self, function):
-        try:
-            function()
-        except ClientError as e:
-            logger.info("unable to execute {0}".format(function))
-
     def delete_stack(self, stack_name):
         self.ignore_client_error(lambda:
                                  self.cfn_client.delete_stack(
                                      StackName=stack_name))
 
+    def ignore_client_error(self, function):
+        try:
+            function()
+        except ClientError as exc:
+            logger.info(
+                'unable to execute {0}: {1}'.format(
+                    function.__name__, exc.message))
