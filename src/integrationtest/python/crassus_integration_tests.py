@@ -234,6 +234,4 @@ class CrassusIntegrationTest(unittest.TestCase):
         try:
             function()
         except ClientError as exc:
-            logger.info(
-                'unable to execute {0}: {1}'.format(
-                    function.__name__, exc.message))
+            logger.warning('Exception caught: {0}'.format(exc.message))
