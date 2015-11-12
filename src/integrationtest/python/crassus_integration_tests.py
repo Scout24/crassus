@@ -69,6 +69,8 @@ class CrassusIntegrationTest(unittest.TestCase):
 
         self.send_update_message(invoker_role)
 
+        self.wait_for_success_from_crassus()
+
         self.assert_update_successful()
 
     def create_invoker_role(self):
@@ -236,3 +238,10 @@ class CrassusIntegrationTest(unittest.TestCase):
             function()
         except ClientError as exc:
             logger.warning('Exception caught: {0}'.format(exc.message))
+
+    def wait_for_success_from_crassus(self):
+        output_sqs_queue_url = self.get_stack_output(self.crassus_stack_name,
+                                       'outputSqsQueue')
+
+        sqs_client = boto3.client('sqs')
+        sqs_client.receive_message(QueueUrl=output_sqs_queue_url)
