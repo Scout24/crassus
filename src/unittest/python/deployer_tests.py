@@ -83,6 +83,7 @@ class TestParseParameters(unittest.TestCase):
 class TestNotify(unittest.TestCase):
     STATUS = 'success'
     MESSAGE = 'ANY MESSAGE'
+    STACK_NAME = 'anyStack'
 
     @patch('crassus.deployer.output_sns_topics', ['ANY_ARN'])
     @patch('boto3.resource')
@@ -92,7 +93,7 @@ class TestNotify(unittest.TestCase):
         sns_mock.Topic.return_value = topic_mock
         resource_mock.return_value = sns_mock
 
-        notify(self.STATUS, self.MESSAGE)
+        notify(self.STATUS, self.MESSAGE, self.STACK_NAME)
 
         topic_mock.publish.assert_called_once_with(
             Message=ANY,
@@ -100,12 +101,12 @@ class TestNotify(unittest.TestCase):
             MessageStructure='string')
         import json
         kwargs = topic_mock.publish.call_args[1]
-        expected = ResultMessage(self.STATUS, self.MESSAGE)
+        expected = ResultMessage(self.STATUS, self.MESSAGE, self.STACK_NAME)
         self.assertEqual(expected, json.loads(kwargs['Message']))
 
     @patch('crassus.deployer.output_sns_topics', None)
     def test_should_do_gracefully_nothing(self):
-        notify('status', 'message')
+        notify('status', 'message', 'stack_name')
 
 
 class TestUpdateStack(unittest.TestCase):
@@ -306,8 +307,9 @@ class TestInitOutputSnsTopic(unittest.TestCase):
 class TestResultMessage(unittest.TestCase):
 
     def test_constructor(self):
-        result_message = ResultMessage('my_status', 'my_message')
+        result_message = ResultMessage('my_status', 'my_message', 'stack_name')
         self.assertEqual(result_message['version'], '1.0')
         self.assertEqual(result_message['status'], 'my_status')
         self.assertEqual(result_message['message'], 'my_message')
+        self.assertEqual(result_message['stackName'], 'stack_name')
         self.assertNotEqual(result_message['message'], 'NO_SUCH_MESSAGE')

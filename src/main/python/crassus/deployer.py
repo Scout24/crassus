@@ -61,7 +61,7 @@ def load_stack(stack_name):
         stack.load()
     except ClientError as error:
         logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
-        notify(STATUS_FAILURE, error.message)
+        notify(STATUS_FAILURE, error.message, stack_name)
     else:
         return stack
 
@@ -72,17 +72,18 @@ def update_stack(stack, stack_update_parameters):
         stack.update(
             UsePreviousTemplate=True, Parameters=merged, Capabilities=[
                 'CAPABILITY_IAM', ], NotificationARNs=output_sns_topics)
-        notify(STATUS_SUCCESS, "Cloudformation was triggered successfully.")
+        notify(STATUS_SUCCESS, "Cloudformation was triggered successfully.",
+               stack_update_parameters.stack_name)
     except ClientError as error:
         logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
-        notify(STATUS_FAILURE, error.message)
+        notify(STATUS_FAILURE, error.message, stack_update_parameters.stack_name)
 
 
-def notify(status, message):
+def notify(status, message, stack_name):
     if output_sns_topics is None:
         return
     sns = boto3.resource('sns')
-    result_message = ResultMessage(status, message)
+    result_message = ResultMessage(status, message, stack_name)
     for topic_arn in output_sns_topics:
         notification_topic = sns.Topic(topic_arn)
         notification_topic.publish(
@@ -123,8 +124,9 @@ class ResultMessage(dict):
 
     version = '1.0'
 
-    def __init__(self, status, message):
+    def __init__(self, status, message, stack_name):
         self['version'] = self.version
+        self['stackName'] = stack_name
         self['status'] = status
         self['message'] = message
 
