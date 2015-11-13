@@ -63,6 +63,7 @@ def set_properties(project):
 @init(environments='teamcity')
 def set_properties_for_teamcity_builds(project):
     project.set_property('teamcity_output', True)
+    project.set_property('teamcity_parameter', 'crassus_filename')
 
     # project.version = '%s-%s' % (project.version,
     #                              os.environ.get('BUILD_NUMBER', 0))
