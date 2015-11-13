@@ -57,7 +57,7 @@ class CrassusIntegrationTest(unittest.TestCase):
     def tearDown(self):
         self.delete_invoker_role()
         self.delete_stack(self.crassus_stack_name)
-        self.delete_stack(self.app_stack_name)
+        self.delete_stack_when_update_finished(self.app_stack_name)
 
     def test_create_stacks_and_update(self):
         invoker_role = self.create_invoker_role()
@@ -117,7 +117,20 @@ class CrassusIntegrationTest(unittest.TestCase):
                                                 'WebsiteURL')
         update_successful = False
         for i in range(0, 30):
-            hello_world = urllib2.urlopen(hello_world_url).read()
+            try:
+                hello_world = urllib2.urlopen(hello_world_url).read()
+            except urllib2.HTTPError as http_error:
+                if http_error.code == 503:
+                    logger.info('Application not yet ready: {0}'.format(
+                        http_error))
+                    sleep(10)
+                    continue
+                else:
+                    raise http_error
+
+            logger.info('Checking output from {0}: {1}'.format(
+                hello_world_url, hello_world))
+
             if re.compile('.*?python-docker-hello-world-webapp 40.*').match(
                     hello_world):
                 update_successful = True
@@ -230,6 +243,17 @@ class CrassusIntegrationTest(unittest.TestCase):
         self.ignore_client_error(lambda:
                                  self.cfn_client.delete_stack(
                                      StackName=stack_name))
+
+    def delete_stack_when_update_finished(self, stack_name):
+        try:
+            self.cfn_client.delete_stack(StackName=stack_name)
+        except ClientError as client_error:
+            if client_error.message.endswith('cannot be deleted while in '
+                                             'status UPDATE_IN_PROGRESS'):
+                logger.info(client_error.message)
+                sleep(60)
+                self.delete_stack_when_update_finished(stack_name)
+
 
     def ignore_client_error(self, function):
         try:
