@@ -17,7 +17,7 @@ from cfn_sphere.config import Config
 from cfn_sphere.main import StackActionHandler
 
 REGION_NAME = 'eu-west-1'
-SNS_FULL_ACCESS = "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+SNS_FULL_ACCESS = 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
 
 logging.basicConfig(
     format='%(asctime)s %(threadName)s %(levelname)s %(module)s: %(message)s',
@@ -40,19 +40,19 @@ class CreateStack(threading.Thread):
 class CrassusIntegrationTest(unittest.TestCase):
 
     def setUp(self):
-        self.test_id = "crassus-it-{0}-{1}" \
+        self.test_id = 'crassus-it-{0}-{1}' \
             .format(socket.gethostname(),
-                    datetime.utcnow().strftime("%Y%m%d%H%M%S"))
-        self.invoker_role_name = "crassus-invoker-it-{0}".format(self.test_id)
+                    datetime.utcnow().strftime('%Y%m%d%H%M%S'))
+        self.invoker_role_name = 'crassus-invoker-it-{0}'.format(self.test_id)
         self.crassus_stack_name = self.test_id
-        self.app_stack_name = "app-{0}".format(self.test_id)
+        self.app_stack_name = 'app-{0}'.format(self.test_id)
 
-        logger.info("running with test id: {0}".format(self.test_id))
+        logger.info('running with test id: {0}'.format(self.test_id))
 
         self.iam_client = boto3.client('iam')
         self.sts_client = boto3.client('sts')
         self.cfn_client = boto3.client('cloudformation')
-        self.ec2_client = boto3.client("ec2")
+        self.ec2_client = boto3.client('ec2')
 
     def tearDown(self):
         self.delete_invoker_role()
@@ -76,11 +76,11 @@ class CrassusIntegrationTest(unittest.TestCase):
             .match(self.iam_client.list_roles()['Roles'][0]['Arn']).group(1)
         assume_role_policy = json.dumps(
             {
-                "Statement": [
-                    {"Effect": "Allow", "Principal":
-                        {"AWS": "arn:aws:iam::{0}:root".format(
+                'Statement': [
+                    {'Effect': 'Allow', 'Principal':
+                        {'AWS': 'arn:aws:iam::{0}:root'.format(
                             current_account)},
-                     "Action": ["sts:AssumeRole"]}
+                     'Action': ['sts:AssumeRole']}
                 ]
             })
 
@@ -95,10 +95,10 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def assume_role(self, invoker_role):
         credentials = self.sts_client.assume_role(
-            RoleArn=invoker_role.arn, RoleSessionName="{0}".format(
+            RoleArn=invoker_role.arn, RoleSessionName='{0}'.format(
                 self.test_id))['Credentials']
 
-        ec2 = boto3.client(service_name="ec2", region_name=REGION_NAME,
+        ec2 = boto3.client(service_name='ec2', region_name=REGION_NAME,
                            aws_access_key_id=credentials['AccessKeyId'],
                            aws_secret_access_key=credentials[
                                'SecretAccessKey'],
@@ -106,15 +106,15 @@ class CrassusIntegrationTest(unittest.TestCase):
         try:
             ec2.describe_instances()
             self.fail(
-                "Should not be allowed for role: {0}".format(invoker_role.arn))
+                'Should not be allowed for role: {0}'.format(invoker_role.arn))
         except ClientError as e:
-            logger.debug("Expected error: {0}".format(e))
+            logger.debug('Expected error: {0}'.format(e))
 
         return credentials
 
     def assert_update_successful(self):
         hello_world_url = self.get_stack_output(self.app_stack_name,
-                                                "WebsiteURL")
+                                                'WebsiteURL')
         update_successful = False
         for i in range(0, 30):
             hello_world = urllib2.urlopen(hello_world_url).read()
@@ -129,27 +129,27 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
-        sns_client = boto3.client(service_name="sns",
+        sns_client = boto3.client(service_name='sns',
                                   region_name=REGION_NAME,
                                   aws_access_key_id=credentials['AccessKeyId'],
                                   aws_secret_access_key=credentials[
                                       'SecretAccessKey'],
                                   aws_session_token=credentials['SessionToken'])
         message = {
-            "version": 1,
-            "stackName": self.app_stack_name,
-            "region": REGION_NAME,
-            "parameters": {
-                "dockerImageVersion": "40"
+            'version': 1,
+            'stackName': self.app_stack_name,
+            'region': REGION_NAME,
+            'parameters': {
+                'dockerImageVersion': '40'
             }
         }
         crassus_input_topic_arn = self.get_stack_output(self.crassus_stack_name,
-                                                        "inputSnsTopicARN")
+                                                        'inputSnsTopicARN')
 
         message_id = sns_client.publish(TopicArn=crassus_input_topic_arn,
                                         Message=json.dumps(message))
         logger.info(
-            "published update message to topic: {0}, message: {1}, got message_id: {2}".format(
+            'published update message to topic: {0}, message: {1}, got message_id: {2}'.format(
                 crassus_input_topic_arn, message, message_id
             ))
 
@@ -164,7 +164,7 @@ class CrassusIntegrationTest(unittest.TestCase):
                 output_value = output_item['OutputValue']
 
         if output_value is None:
-            raise Exception("Stack with name: {0} does not have output: {1}"
+            raise Exception('Stack with name: {0} does not have output: {1}'
                             .format(stack_name, output_name))
 
         return output_value
@@ -172,37 +172,37 @@ class CrassusIntegrationTest(unittest.TestCase):
     def create_app_stack(self):
         subnet_ids, vpc_id = self.get_first_vpc_and_subnets()
         app_config = Config(config_dict={
-            "region": REGION_NAME,
-            "stacks": {
+            'region': REGION_NAME,
+            'stacks': {
                 self.app_stack_name: {
-                    "template-url": "s3://is24-python-docker-hello-world-webapp/latest/ecs-minimal-webapp.json",
-                    "parameters": {
-                        "vpcId": vpc_id,
-                        "subnetIds": subnet_ids,
-                        "dockerImageVersion": "15"
+                    'template-url': 's3://is24-python-docker-hello-world-webapp/latest/ecs-minimal-webapp.json',
+                    'parameters': {
+                        'vpcId': vpc_id,
+                        'subnetIds': subnet_ids,
+                        'dockerImageVersion': '15'
                     }
                 }
             }
         })
-        app_stack_creation = CreateStack("AppCreationThread", app_config)
+        app_stack_creation = CreateStack('AppCreationThread', app_config)
         app_stack_creation.start()
         return app_stack_creation
 
     def create_crassus_stack(self, invoker_role_arn):
         crassus_config = Config(config_dict={
-            "region": REGION_NAME,
-            "stacks": {
+            'region': REGION_NAME,
+            'stacks': {
                 self.crassus_stack_name: {
-                    "template-url": "s3://crassus-lambda-zips/latest/crassus.json",
-                    "parameters": {
-                        "zipFile": "latest/crassus.zip",
-                        "bucketName": "crassus-lambda-zips",
-                        "triggeringUserArn": invoker_role_arn
+                    'template-url': 's3://crassus-lambda-zips/latest/crassus.json',
+                    'parameters': {
+                        'zipFile': 'latest/crassus.zip',
+                        'bucketName': 'crassus-lambda-zips',
+                        'triggeringUserArn': invoker_role_arn
                     }
                 }
             }
         })
-        crassus_stack_creation = CreateStack("CrassusCreationThread",
+        crassus_stack_creation = CreateStack('CrassusCreationThread',
                                              crassus_config)
         crassus_stack_creation.start()
         return crassus_stack_creation
@@ -214,7 +214,7 @@ class CrassusIntegrationTest(unittest.TestCase):
                                                              'Values': [vpc_id]}])['Subnets']
         for subnet in subnets:
             subnet_ids.append(subnet['SubnetId'])
-        subnet_ids_paramater = ",".join(subnet_ids)
+        subnet_ids_paramater = ','.join(subnet_ids)
         return subnet_ids_paramater, vpc_id
 
     def delete_invoker_role(self):
