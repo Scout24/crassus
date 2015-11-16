@@ -10,6 +10,7 @@ from crassus.deployer import (
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
 STACK_NAME = 'ANY_STACK'
+ANY_TOPIC = ['ANY_TOPIC']
 
 CRASSUS_CFN_PARAMETERS = [
     {
@@ -73,7 +74,7 @@ class TestParseParameters(unittest.TestCase):
     def test_parse_valid_event(self):
 
         self.assertEqual(self.crassus.stack_update_parameters.stack_name,
-                         'ANY_STACK')
+                         STACK_NAME)
 
 
 class TestNotify(unittest.TestCase):
@@ -89,7 +90,7 @@ class TestNotify(unittest.TestCase):
 
         self.crassus = Crassus(None, None)
         self.crassus._stack_name = STACK_NAME
-        self.crassus._output_topics = ['ANY_TOPIC']
+        self.crassus._output_topics = ANY_TOPIC
 
         self.crassus.notify(self.STATUS, self.MESSAGE)
 
@@ -142,7 +143,7 @@ class TestUpdateStack(unittest.TestCase):
             StackUpdateParameter(self.update_parameters)
         self.crassus.stack = self.stack_mock
         self.crassus._stack_name = STACK_NAME
-        self.crassus._output_topics = ['ANY_TOPIC']
+        self.crassus._output_topics = ANY_TOPIC
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     def test_update_stack_should_call_update(self):
@@ -152,7 +153,7 @@ class TestUpdateStack(unittest.TestCase):
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=['ANY_TOPIC'])
+            NotificationARNs=ANY_TOPIC)
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
@@ -185,8 +186,8 @@ class TestLoad(unittest.TestCase):
         self.resource_mock.return_value = self.cloudformation_mock
         self.cloudformation_mock.Stack.return_value = self.stack_mock
         self.crassus = Crassus(None, None)
-        self.crassus._stack_name = 'ANY_STACK'
-        self.crassus._output_topics = ['ANY_TOPIC']
+        self.crassus._stack_name = STACK_NAME
+        self.crassus._output_topics = ANY_TOPIC
 
     def tearDown(self):
         self.patcher.stop()
