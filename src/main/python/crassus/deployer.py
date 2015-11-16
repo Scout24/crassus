@@ -32,11 +32,6 @@ class Crassus(object):
         self._stack_name = None
         self.stack = None
 
-    def parse_event(self):
-        message = json.loads(self.event['Records'][0]['Sns']['Message'])
-        self._stack_update_parameters = StackUpdateParameter(message)
-        self._stack_name = self._stack_update_parameters.stack_name
-
     @property
     def stack_name(self):
         if not self._stack_name:
@@ -48,6 +43,11 @@ class Crassus(object):
         if not self._stack_update_parameters:
             self.parse_event()
         return self._stack_update_parameters
+
+    def parse_event(self):
+        message = json.loads(self.event['Records'][0]['Sns']['Message'])
+        self._stack_update_parameters = StackUpdateParameter(message)
+        self._stack_name = self._stack_update_parameters.stack_name
 
     @property
     def output_topics(self):
