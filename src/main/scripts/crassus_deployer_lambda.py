@@ -1,5 +1,6 @@
-from crassus.deployer import deploy_stack
+from crassus import Crassus
 
 
 def handler(event, context):
-    deploy_stack(event, context)
+    crassus = Crassus(event, context)
+    crassus.deploy()
