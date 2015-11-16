@@ -27,12 +27,12 @@ class Crassus(object):
         self.aws_cfn = boto3.resource('cloudformation')
         self.aws_sns = boto3.resource('sns')
         self.aws_lambda = boto3.client('lambda')
-        self._output_sns_topics = None
+        self._output_topics = None
 
     @property
     def output_sns_topics(self):
-        if self._output_sns_topics:
-            return self._output_sns_topics
+        if self._output_topics:
+            return self._output_topics
         FunctionName = self.context.invoked_function_arn
         Qualifier = self.context.function_version
         description = self.aws_lambda.get_function_configuration(
@@ -41,8 +41,8 @@ class Crassus(object):
         )['Description']
         try:
             data = json.loads(description)
-            self._output_sns_topics = data['topic_list']
-            return self._output_sns_topics
+            self._output_topics = data['topic_list']
+            return self._output_topics
         except ValueError:
             logger.error(
                 'Description of function must contain JSON, but was "{0}"'
