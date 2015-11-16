@@ -16,8 +16,6 @@ MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {stack_name}: {message}'
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failure'
 
-output_sns_topics = None
-
 
 class Crassus(object):
 
@@ -72,14 +70,16 @@ class Crassus(object):
         except KeyError:
             logger.error('Unable to find the output SNS topic')
 
-    def notify_success(self, message):
-        pass
-
-    def notify_failure(self, message):
-        pass
-
     def notify(self, status, message):
-        pass
+        if self.output_topics is None:
+            return
+        result_message = ResultMessage(status, message, self.stack_name)
+        for topic_arn in self.output_topics:
+            notification_topic = self.aws_sns.Topic(topic_arn)
+            print notification_topic
+            notification_topic.publish(
+                Message=json.dumps(result_message), Subject=NOTIFICATION_SUBJECT,
+                MessageStructure='string')
 
     def load(self):
         self.stack = self.aws_cfn.Stack(self.stack_name)
@@ -89,21 +89,20 @@ class Crassus(object):
         except ClientError as error:
             logger.error(MESSAGE_STACK_NOT_FOUND.format(
                 stack_name=self.stack_name, message=error.message))
-            notify(STATUS_FAILURE, error.message, self.stack_name)
+            self.notify(STATUS_FAILURE, error.message)
 
     def update(self):
         merged = self.stack_update_parameters.merge(self.stack.parameters)
         try:
             self.stack.update(
                 UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                    'CAPABILITY_IAM'], NotificationARNs=output_sns_topics)
-            notify(
-                STATUS_SUCCESS, 'Cloudformation was triggered successfully.',
-                self.stack_name)
+                    'CAPABILITY_IAM'], NotificationARNs=self.output_topics)
+            self.notify(
+                STATUS_SUCCESS, 'Cloudformation was triggered successfully.')
         except ClientError as error:
             logger.error(MESSAGE_UPDATE_PROBLEM.format(
                 stack_name=self.stack_name, message=error.message))
-            notify(STATUS_FAILURE, error.message, self.stack_name)
+            self.notify(STATUS_FAILURE, error.message)
 
     def deploy(self):
         pass
@@ -119,24 +118,6 @@ def deploy_stack(event, context):
     logger.debug('Found stack: %s', stack)
 
     update_stack(stack, stack_update_parameters)
-
-
-
-
-
-
-
-
-def notify(status, message, stack_name):
-    if output_sns_topics is None:
-        return
-    sns = boto3.resource('sns')
-    result_message = ResultMessage(status, message, stack_name)
-    for topic_arn in output_sns_topics:
-        notification_topic = sns.Topic(topic_arn)
-        notification_topic.publish(
-            Message=json.dumps(result_message), Subject=NOTIFICATION_SUBJECT,
-            MessageStructure='string')
 
 
 class StackUpdateParameter(dict):

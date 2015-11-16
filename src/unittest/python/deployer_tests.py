@@ -7,7 +7,7 @@ from mock import ANY, Mock, patch
 
 from crassus.deployer import (
     Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,
-    deploy_stack, notify)
+    deploy_stack)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -86,9 +86,7 @@ class TestParseParameters(unittest.TestCase):
 class TestNotify(unittest.TestCase):
     STATUS = 'success'
     MESSAGE = 'ANY MESSAGE'
-    STACK_NAME = 'anyStack'
 
-    @patch('crassus.deployer.output_sns_topics', ['ANY_ARN'])
     @patch('boto3.resource')
     def test_should_notify_sns(self, resource_mock):
         topic_mock = Mock()
@@ -96,7 +94,11 @@ class TestNotify(unittest.TestCase):
         sns_mock.Topic.return_value = topic_mock
         resource_mock.return_value = sns_mock
 
-        notify(self.STATUS, self.MESSAGE, self.STACK_NAME)
+        self.crassus = Crassus(None, None)
+        self.crassus._stack_name = STACK_NAME
+        self.crassus._output_topics = ['ANY_TOPIC']
+
+        self.crassus.notify(self.STATUS, self.MESSAGE)
 
         topic_mock.publish.assert_called_once_with(
             Message=ANY,
@@ -104,12 +106,13 @@ class TestNotify(unittest.TestCase):
             MessageStructure='string')
         import json
         kwargs = topic_mock.publish.call_args[1]
-        expected = ResultMessage(self.STATUS, self.MESSAGE, self.STACK_NAME)
+        expected = ResultMessage(self.STATUS, self.MESSAGE, STACK_NAME)
         self.assertEqual(expected, json.loads(kwargs['Message']))
 
-    @patch('crassus.deployer.output_sns_topics', None)
+    @patch('crassus.deployer.Crassus.output_topics', None)
     def test_should_do_gracefully_nothing(self):
-        notify('status', 'message', 'stack_name')
+        self.crassus = Crassus(None, None)
+        self.crassus.notify('status', 'message')
 
 
 class TestUpdateStack(unittest.TestCase):
@@ -148,7 +151,7 @@ class TestUpdateStack(unittest.TestCase):
         self.crassus._stack_name = STACK_NAME
         self.crassus._output_topics = ['ANY_TOPIC']
 
-    @patch('crassus.deployer.notify', Mock())
+    @patch('crassus.deployer.Crassus.notify', Mock())
     def test_update_stack_should_call_update(self):
         self.crassus.update()
 
@@ -156,8 +159,9 @@ class TestUpdateStack(unittest.TestCase):
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=None)
+            NotificationARNs=['ANY_TOPIC'])
 
+    @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
     def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
         self.stack_mock.update.side_effect = ClientError(
@@ -189,6 +193,7 @@ class TestLoad(unittest.TestCase):
         self.cloudformation_mock.Stack.return_value = self.stack_mock
         self.crassus = Crassus(None, None)
         self.crassus._stack_name = 'ANY_STACK'
+        self.crassus._output_topics = ['ANY_TOPIC']
 
     def tearDown(self):
         self.patcher.stop()
