@@ -6,8 +6,7 @@ import boto3
 from mock import ANY, Mock, patch
 
 from crassus.deployer import (
-    Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,
-    deploy_stack)
+    Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -51,25 +50,13 @@ SAMPLE_EVENT = {
 
 class TestDeployStack(unittest.TestCase):
 
-    @patch('crassus.deployer.init_output_sns_topic')
-    @patch('crassus.deployer.parse_event')
-    @patch('crassus.deployer.load_stack')
-    @patch('crassus.deployer.update_stack')
-    def test_should_call_all_necessary_stuff(
-            self, update_stack_mock, load_stack_mock, parse_event_mock,
-            init_mock):
-        stack_update_parameter_mock = Mock()
-        stack_update_parameter_mock.stack_name = STACK_NAME
-        stack_update_parameter_mock.parameters = PARAMETER
-        parse_event_mock.return_value = stack_update_parameter_mock
-        load_stack_mock.return_value = 'ANY_STACK_ID'
-
-        deploy_stack(SAMPLE_EVENT, None)
-
-        parse_event_mock.assert_called_once_with(SAMPLE_EVENT)
-        load_stack_mock.assert_called_once_with(STACK_NAME)
-        update_stack_mock.assert_called_once_with('ANY_STACK_ID',
-                                                  stack_update_parameter_mock)
+    @patch('crassus.deployer.Crassus.load')
+    @patch('crassus.deployer.Crassus.update')
+    def test_should_call_all_necessary_stuff(self, load_mock, update_mock):
+        crassus = Crassus(None, None)
+        crassus.deploy()
+        load_mock.assert_called_once_with()
+        update_mock.assert_called_once_with()
 
 
 class TestParseParameters(unittest.TestCase):

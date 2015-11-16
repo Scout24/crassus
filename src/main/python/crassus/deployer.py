@@ -105,19 +105,12 @@ class Crassus(object):
             self.notify(STATUS_FAILURE, error.message)
 
     def deploy(self):
-        pass
+        self.load()
+        self.update()
 
-
-def deploy_stack(event, context):
-    global output_sns_topics
-    output_sns_topics = init_output_sns_topic(context)
-    logger.debug('Received event: %s', event)
-    stack_update_parameters = parse_event(event)
-    logger.debug('Extracted: %s', stack_update_parameters)
-    stack = load_stack(stack_update_parameters.stack_name)
-    logger.debug('Found stack: %s', stack)
-
-    update_stack(stack, stack_update_parameters)
+#logger.debug('Received event: %s', event)
+#logger.debug('Extracted: %s', stack_update_parameters)
+#logger.debug('Found stack: %s', stack)
 
 
 class StackUpdateParameter(dict):
