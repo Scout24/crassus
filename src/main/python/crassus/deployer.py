@@ -21,7 +21,9 @@ class Crassus(object):
 
     def __init__(self, event, context):
         self.event = event
+        logger.debug('Received event: %r', event)
         self.context = context
+        logger.debug('Received context: %r', context)
 
         self.aws_cfn = boto3.resource('cloudformation')
         self.aws_sns = boto3.resource('sns')
@@ -48,6 +50,8 @@ class Crassus(object):
         message = json.loads(self.event['Records'][0]['Sns']['Message'])
         self._stack_update_parameters = StackUpdateParameter(message)
         self._stack_name = self._stack_update_parameters.stack_name
+        logger.debug('Extracted Update Parameters: %r',
+                     self._stack_update_parameters)
 
     @property
     def output_topics(self):
@@ -62,6 +66,7 @@ class Crassus(object):
         try:
             data = json.loads(description)
             self._output_topics = data['topic_list']
+            logger.debug('Extracted Output Topic(s): %r', self._output_topics)
             return self._output_topics
         except ValueError:
             logger.error(
@@ -85,6 +90,7 @@ class Crassus(object):
         self.stack = self.aws_cfn.Stack(self.stack_name)
         try:
             self.stack.load()
+            logger.debug('Loaded Stack: %r', self.stack)
         except ClientError as error:
             logger.error(MESSAGE_STACK_NOT_FOUND.format(
                 stack_name=self.stack_name, message=error.message))
@@ -93,13 +99,15 @@ class Crassus(object):
     def update(self):
         merged = self.stack_update_parameters.merge(self.stack.parameters)
         try:
+            logger.debug('Will try to update Cloudformation')
             self.stack.update(
                 UsePreviousTemplate=True,
                 Parameters=merged,
                 Capabilities=['CAPABILITY_IAM'],
                 NotificationARNs=self.output_topics)
-            self.notify(
-                STATUS_SUCCESS, 'Cloudformation was triggered successfully.')
+            message = 'Cloudformation was triggered successfully.'
+            logger.debug(message)
+            self.notify(STATUS_SUCCESS, message)
         except ClientError as error:
             logger.error(MESSAGE_UPDATE_PROBLEM.format(
                 stack_name=self.stack_name, message=error.message))
@@ -108,10 +116,6 @@ class Crassus(object):
     def deploy(self):
         self.load()
         self.update()
-
-#logger.debug('Received event: %s', event)
-#logger.debug('Extracted: %s', stack_update_parameters)
-#logger.debug('Found stack: %s', stack)
 
 
 class StackUpdateParameter(dict):
