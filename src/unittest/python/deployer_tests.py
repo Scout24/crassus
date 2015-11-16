@@ -2,7 +2,6 @@ import unittest
 from textwrap import dedent
 
 from botocore.exceptions import ClientError
-import boto3
 from mock import ANY, Mock, patch
 
 from crassus.deployer import (
