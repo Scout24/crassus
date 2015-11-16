@@ -166,4 +166,3 @@ class ResultMessage(dict):
         self['status'] = status
         self['message'] = message
 
-
