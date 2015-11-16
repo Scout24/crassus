@@ -82,17 +82,28 @@ class Crassus(object):
         pass
 
     def load(self):
-        self._stack = self.aws_cfn.Stack(self.stack_name)
+        self.stack = self.aws_cfn.Stack(self.stack_name)
 
         try:
-            self._stack.load()
+            self.stack.load()
         except ClientError as error:
             logger.error(MESSAGE_STACK_NOT_FOUND.format(
                 stack_name=self.stack_name, message=error.message))
             notify(STATUS_FAILURE, error.message, self.stack_name)
 
     def update(self):
-        pass
+        merged = self.stack_update_parameters.merge(self.stack.parameters)
+        try:
+            self.stack.update(
+                UsePreviousTemplate=True, Parameters=merged, Capabilities=[
+                    'CAPABILITY_IAM'], NotificationARNs=output_sns_topics)
+            notify(
+                STATUS_SUCCESS, 'Cloudformation was triggered successfully.',
+                self.stack_name)
+        except ClientError as error:
+            logger.error(MESSAGE_UPDATE_PROBLEM.format(
+                stack_name=self.stack_name, message=error.message))
+            notify(STATUS_FAILURE, error.message, self.stack_name)
 
     def deploy(self):
         pass
@@ -114,20 +125,6 @@ def deploy_stack(event, context):
 
 
 
-def update_stack(stack, stack_update_parameters):
-    merged = stack_update_parameters.merge(stack.parameters)
-    try:
-        stack.update(
-            UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                'CAPABILITY_IAM'], NotificationARNs=output_sns_topics)
-        notify(
-            STATUS_SUCCESS, 'Cloudformation was triggered successfully.',
-            stack_update_parameters.stack_name)
-    except ClientError as error:
-        logger.error(MESSAGE_UPDATE_PROBLEM.format(
-            stack_name=stack.name, message=error.message))
-        notify(STATUS_FAILURE, error.message,
-               stack_update_parameters.stack_name)
 
 
 def notify(status, message, stack_name):

@@ -7,7 +7,7 @@ from mock import ANY, Mock, patch
 
 from crassus.deployer import (
     Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,
-    deploy_stack, notify, update_stack)
+    deploy_stack, notify)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -141,26 +141,29 @@ class TestUpdateStack(unittest.TestCase):
              "UsePreviousValue": True
              }
         ]
+        self.crassus = Crassus(None, None)
+        self.crassus._stack_update_parameters = \
+            StackUpdateParameter(self.update_parameters)
+        self.crassus.stack = self.stack_mock
+        self.crassus._stack_name = STACK_NAME
+        self.crassus._output_topics = ['ANY_TOPIC']
 
-    @patch('crassus.deployer.output_sns_topics', ['ANY_TOPIC'])
     @patch('crassus.deployer.notify', Mock())
     def test_update_stack_should_call_update(self):
-        update_parameters = StackUpdateParameter(self.update_parameters)
-        update_stack(self.stack_mock, update_parameters)
+        self.crassus.update()
 
         self.stack_mock.update.assert_called_once_with(
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=['ANY_TOPIC'])
+            NotificationARNs=None)
 
     @patch('crassus.deployer.logger')
     def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
-        update_parameters = StackUpdateParameter(self.update_parameters)
         self.stack_mock.update.side_effect = ClientError(
             {'Error': {'Code': 'ExpectedException', 'Message': ''}},
             'test_deploy_stack_should_notify_error_in_case_of_client_error')
-        update_stack(self.stack_mock, update_parameters)
+        self.crassus.update()
         logger_mock.error.assert_called_once_with(ANY)
 
     """@patch('crassus.deployer.notify')
