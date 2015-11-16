@@ -76,9 +76,9 @@ class Crassus(object):
         result_message = ResultMessage(status, message, self.stack_name)
         for topic_arn in self.output_topics:
             notification_topic = self.aws_sns.Topic(topic_arn)
-            print notification_topic
             notification_topic.publish(
-                Message=json.dumps(result_message), Subject=NOTIFICATION_SUBJECT,
+                Message=json.dumps(result_message),
+                Subject=NOTIFICATION_SUBJECT,
                 MessageStructure='string')
 
     def load(self):
