@@ -71,7 +71,7 @@ def update_stack(stack, stack_update_parameters):
     try:
         stack.update(
             UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                'CAPABILITY_IAM', ], NotificationARNs=output_sns_topics)
+                'CAPABILITY_IAM'], NotificationARNs=output_sns_topics)
         notify(STATUS_SUCCESS, "Cloudformation was triggered successfully.",
                stack_update_parameters.stack_name)
     except ClientError as error:
@@ -121,6 +121,17 @@ class StackUpdateParameter(dict):
 
 
 class ResultMessage(dict):
+    """
+    A message that crassus returns for events such as fail or success
+    events for stack deployments/updates. These messages will be
+    transmitted as JSON encoded strings.
+
+    It is initialized with the following parameters:
+    - status: STATUS_FAILURE or STATUS_SUCCESS
+    - stack_name: the stack name the notification message stands for
+    - version: a version identifier for the message. Defaults as '1.0'
+    - message: the textual message for the notification.
+    """
 
     version = '1.0'
 
