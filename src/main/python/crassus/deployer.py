@@ -19,6 +19,56 @@ STATUS_FAILURE = 'failure'
 output_sns_topics = None
 
 
+class Crassus(object):
+
+    def __init__(self, event, context):
+        self.event = event
+        self.context = context
+        self.aws_cfn = boto3.resource('cloudformation')
+        self.aws_sns = boto3.resource('sns')
+        self.aws_lambda = boto3.client('lambda')
+        self._output_sns_topics = None
+
+    @property
+    def output_sns_topics(self):
+        if self._output_sns_topics:
+            return self._output_sns_topics
+        FunctionName = self.context.invoked_function_arn
+        Qualifier = self.context.function_version
+        description = self.aws_lambda.get_function_configuration(
+            FunctionName=FunctionName,
+            Qualifier=Qualifier
+        )['Description']
+        try:
+            data = json.loads(description)
+            self._output_sns_topics = data['topic_list']
+            return self._output_sns_topics
+        except ValueError:
+            logger.error(
+                'Description of function must contain JSON, but was "{0}"'
+                .format(description))
+        except KeyError:
+            logger.error('Unable to find the output SNS topic')
+
+    def notify_success(self, message):
+        pass
+
+    def notify_failure(self, message):
+        pass
+
+    def notify(self, status, message):
+        pass
+
+    def load(self):
+        pass
+
+    def update(self):
+        pass
+
+    def deploy(self):
+        pass
+
+
 def deploy_stack(event, context):
     global output_sns_topics
     output_sns_topics = init_output_sns_topic(context)
@@ -29,23 +79,6 @@ def deploy_stack(event, context):
     logger.debug('Found stack: %s', stack)
 
     update_stack(stack, stack_update_parameters)
-
-
-def init_output_sns_topic(context):
-    aws_lambda = boto3.client('lambda')
-    description = aws_lambda.get_function_configuration(
-        FunctionName=context.invoked_function_arn,
-        Qualifier=context.function_version
-    )['Description']
-    try:
-        data = json.loads(description)
-        return data['topic_list']
-    except ValueError:
-        logger.error(
-            'Description of function must contain JSON, but was "{0}"'
-            .format(description))
-    except KeyError:
-        logger.error('Unable to find the output SNS topic')
 
 
 def parse_event(event):
@@ -148,28 +181,3 @@ class ResultMessage(dict):
         self['message'] = message
 
 
-# class Crassus(object):
-
-#     def __init__(self, event, context):
-#         self.event = event
-#         self.context = context
-#         self.cfn = boto3.resource('cloudformation')
-#         self.sns = boto3.resource('sns')
-
-#     def notify_success(self, message):
-#         pass
-
-#     def notify_failure(self, message):
-#         pass
-
-#     def notify(self, status, message):
-#         pass
-
-#     def load(self):
-#         pass
-
-#     def update(self):
-#         pass
-
-#     def deploy(self):
-#         pass

@@ -1,13 +1,13 @@
 import unittest
 from textwrap import dedent
 
-import boto3
 from botocore.exceptions import ClientError
+import boto3
 from mock import ANY, Mock, patch
 
 from crassus.deployer import (
-    NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter, deploy_stack,
-    init_output_sns_topic, load_stack, notify, parse_event, update_stack)
+    Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,
+    deploy_stack, load_stack, notify, parse_event, update_stack)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -268,6 +268,7 @@ class TestInitOutputSnsTopic(unittest.TestCase):
         self.boto3_client = self.patcher.start()
         self.context_mock = Mock(invoked_function_arn="any_arn",
                                  function_version="any_version")
+        self.crassus = Crassus(None, self.context_mock)
 
     def tearDown(self):
         self.patcher.stop()
@@ -280,7 +281,7 @@ class TestInitOutputSnsTopic(unittest.TestCase):
                     "arn:aws:sns:eu-west-1:123456789012:random-topic"
                     ]}""")
         }
-        topic_list = init_output_sns_topic(self.context_mock)
+        topic_list = self.crassus.output_sns_topics
         expected = ["arn:aws:sns:eu-west-1:123456789012:crassus-output",
                     "arn:aws:sns:eu-west-1:123456789012:random-topic", ]
         self.assertEqual(expected, topic_list)
@@ -290,7 +291,7 @@ class TestInitOutputSnsTopic(unittest.TestCase):
         self.boto3_client().get_function_configuration.return_value = {
             'Description': "NO_SUCH_JSON"
         }
-        topic_list = init_output_sns_topic(self.context_mock)
+        topic_list = self.crassus.output_sns_topics
         self.assertEqual(None, topic_list)
         logger_mock.error.assert_called_once_with(ANY)
 
@@ -299,7 +300,7 @@ class TestInitOutputSnsTopic(unittest.TestCase):
         self.boto3_client().get_function_configuration.return_value = {
             'Description': '{"key": "value"}'
         }
-        topic_list = init_output_sns_topic(self.context_mock)
+        topic_list = self.crassus.output_sns_topics
         self.assertEqual(None, topic_list)
         logger_mock.error.assert_called_once_with(ANY)
 
