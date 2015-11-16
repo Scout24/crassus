@@ -81,11 +81,7 @@ def set_properties_for_teamcity_builds(project):
 
 @init(environments='integration_env')
 def set_properties_for_teamcity_integration_test(project):
-    # project.version = '%s-%s' % (project.version,
-    #                              os.environ.get('BUILD_NUMBER', 0))
     use_plugin("python.integrationtest")
-    project.set_property(
-        'install_dependencies_index_url', os.environ.get('PYPIPROXY_URL'))
 
 
 @task('build_json', description='Convert & upload CFN JSON from the template YAML files')

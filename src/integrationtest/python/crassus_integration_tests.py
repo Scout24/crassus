@@ -261,3 +261,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             function()
         except ClientError as exc:
             logger.warning('Exception caught: {0}'.format(exc.message))
+
+
+if __name__ == "__main__":
+    unittest.main()
