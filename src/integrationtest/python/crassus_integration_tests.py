@@ -162,7 +162,8 @@ class CrassusIntegrationTest(unittest.TestCase):
         message_id = sns_client.publish(TopicArn=crassus_input_topic_arn,
                                         Message=json.dumps(message))
         logger.info(
-            'published update message to topic: {0}, message: {1}, got message_id: {2}'.format(
+            'published update message to topic: {0}, message: {1}, got '
+            'message_id: {2}'.format(
                 crassus_input_topic_arn, message, message_id
             ))
 
