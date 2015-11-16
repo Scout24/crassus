@@ -10,13 +10,13 @@ consoleLogger = logging.StreamHandler()
 logger.addHandler(consoleLogger)
 
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
-MESSAGE_STACK_NOT_FOUND = 'Stack not found {0}: {1}'
-MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {0}: {1}'
-
-output_sns_topics = None
+MESSAGE_STACK_NOT_FOUND = 'Stack not found {stack_name}: {message}'
+MESSAGE_UPDATE_PROBLEM = 'Problem while updating stack {stack_name}: {message}'
 
 STATUS_SUCCESS = 'success'
 STATUS_FAILURE = 'failure'
+
+output_sns_topics = None
 
 
 def deploy_stack(event, context):
@@ -60,7 +60,8 @@ def load_stack(stack_name):
     try:
         stack.load()
     except ClientError as error:
-        logger.error(MESSAGE_STACK_NOT_FOUND.format(stack_name, error.message))
+        logger.error(MESSAGE_STACK_NOT_FOUND.format(
+            stack_name=stack_name, message=error.message))
         notify(STATUS_FAILURE, error.message, stack_name)
     else:
         return stack
@@ -71,12 +72,15 @@ def update_stack(stack, stack_update_parameters):
     try:
         stack.update(
             UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                'CAPABILITY_IAM', ], NotificationARNs=output_sns_topics)
-        notify(STATUS_SUCCESS, "Cloudformation was triggered successfully.",
-               stack_update_parameters.stack_name)
+                'CAPABILITY_IAM'], NotificationARNs=output_sns_topics)
+        notify(
+            STATUS_SUCCESS, 'Cloudformation was triggered successfully.',
+            stack_update_parameters.stack_name)
     except ClientError as error:
-        logger.error(MESSAGE_UPDATE_PROBLEM.format(stack.name, error.message))
-        notify(STATUS_FAILURE, error.message, stack_update_parameters.stack_name)
+        logger.error(MESSAGE_UPDATE_PROBLEM.format(
+            stack_name=stack.name, message=error.message))
+        notify(STATUS_FAILURE, error.message,
+               stack_update_parameters.stack_name)
 
 
 def notify(status, message, stack_name):
@@ -100,8 +104,9 @@ class StackUpdateParameter(dict):
         self.update(message['parameters'])
 
     def to_aws_format(self):
-        return [{"ParameterKey": k, "ParameterValue": v}
-                for k, v in self.items()]
+        return [
+            {'ParameterKey': key, 'ParameterValue': value}
+            for key, value in self.items()]
 
     def merge(self, stack_parameters):
         merged_stack_parameters = []
@@ -121,6 +126,18 @@ class StackUpdateParameter(dict):
 
 
 class ResultMessage(dict):
+
+    """
+    A message that crassus returns for events such as fail or success
+    events for stack deployments/updates. These messages will be
+    transmitted as JSON encoded strings.
+
+    It is initialized with the following parameters:
+    - status: STATUS_FAILURE or STATUS_SUCCESS
+    - stack_name: the stack name the notification message stands for
+    - version: a version identifier for the message. Defaults as '1.0'
+    - message: the textual message for the notification.
+    """
 
     version = '1.0'
 
