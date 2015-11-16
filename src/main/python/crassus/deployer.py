@@ -94,8 +94,10 @@ class Crassus(object):
         merged = self.stack_update_parameters.merge(self.stack.parameters)
         try:
             self.stack.update(
-                UsePreviousTemplate=True, Parameters=merged, Capabilities=[
-                    'CAPABILITY_IAM'], NotificationARNs=self.output_topics)
+                UsePreviousTemplate=True,
+                Parameters=merged,
+                Capabilities=['CAPABILITY_IAM'],
+                NotificationARNs=self.output_topics)
             self.notify(
                 STATUS_SUCCESS, 'Cloudformation was triggered successfully.')
         except ClientError as error:
