@@ -83,7 +83,6 @@ class Crassus(object):
 
     def load(self):
         self.stack = self.aws_cfn.Stack(self.stack_name)
-
         try:
             self.stack.load()
         except ClientError as error:
