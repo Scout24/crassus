@@ -30,7 +30,7 @@ class Crassus(object):
         self._output_topics = None
 
     @property
-    def output_sns_topics(self):
+    def output_topics(self):
         if self._output_topics:
             return self._output_topics
         FunctionName = self.context.invoked_function_arn
