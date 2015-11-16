@@ -34,7 +34,14 @@ SAMPLE_EVENT = {
                 'Signature': '<SIGNATURE>',
                 'SigningCertUrl': '<SIGNING URL>',
                 'MessageId': '<MESSAGE ID>',
-                'Message': '{"version": "1", "stackName": "ANY_STACK","region": "eu-west-1","parameters": [{"updateParameterKey": "ANY_NAME1", "updateParameterValue": "ANY_VALUE1"}, {"updateParameterKey": "ANY_NAME2", "updateParameterValue": "ANY_VALUE2"}]}',
+                'Message': '{"version": "1", '
+                           '"stackName": "ANY_STACK", '
+                           '"region": "eu-west-1", '
+                           '"parameters": '
+                               '[{"updateParameterKey": "ANY_NAME1", '
+                               '"updateParameterValue": "ANY_VALUE1"}, '
+                               '{"updateParameterKey": "ANY_NAME2", '
+                               '"updateParameterValue": "ANY_VALUE2"}]}',
                 'MessageAttributes': {
                 },
                 'Type': 'Notification',
