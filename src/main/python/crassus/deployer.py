@@ -24,10 +24,32 @@ class Crassus(object):
     def __init__(self, event, context):
         self.event = event
         self.context = context
+
         self.aws_cfn = boto3.resource('cloudformation')
         self.aws_sns = boto3.resource('sns')
         self.aws_lambda = boto3.client('lambda')
+
         self._output_topics = None
+        self._stack_update_parameters = None
+        self._stack_name = None
+        self.stack = None
+
+    def parse_event(self):
+        message = json.loads(self.event['Records'][0]['Sns']['Message'])
+        self._stack_update_parameters = StackUpdateParameter(message)
+        self._stack_name = self._stack_update_parameters.stack_name
+
+    @property
+    def stack_name(self):
+        if not self._stack_name:
+            self.parse_event()
+        return self._stack_name
+
+    @property
+    def stack_update_parameters(self):
+        if not self._stack_update_parameters:
+            self.parse_event()
+        return self._stack_update_parameters
 
     @property
     def output_topics(self):
@@ -60,7 +82,14 @@ class Crassus(object):
         pass
 
     def load(self):
-        pass
+        self._stack = self.aws_cfn.Stack(self.stack_name)
+
+        try:
+            self._stack.load()
+        except ClientError as error:
+            logger.error(MESSAGE_STACK_NOT_FOUND.format(
+                stack_name=self.stack_name, message=error.message))
+            notify(STATUS_FAILURE, error.message, self.stack_name)
 
     def update(self):
         pass
@@ -81,23 +110,8 @@ def deploy_stack(event, context):
     update_stack(stack, stack_update_parameters)
 
 
-def parse_event(event):
-    message = json.loads(event['Records'][0]['Sns']['Message'])
-    return StackUpdateParameter(message)
 
 
-def load_stack(stack_name):
-    cloudformation = boto3.resource('cloudformation')
-    stack = cloudformation.Stack(stack_name)
-
-    try:
-        stack.load()
-    except ClientError as error:
-        logger.error(MESSAGE_STACK_NOT_FOUND.format(
-            stack_name=stack_name, message=error.message))
-        notify(STATUS_FAILURE, error.message, stack_name)
-    else:
-        return stack
 
 
 def update_stack(stack, stack_update_parameters):

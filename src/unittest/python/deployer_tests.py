@@ -7,7 +7,7 @@ from mock import ANY, Mock, patch
 
 from crassus.deployer import (
     Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,
-    deploy_stack, load_stack, notify, parse_event, update_stack)
+    deploy_stack, notify, update_stack)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -74,10 +74,13 @@ class TestDeployStack(unittest.TestCase):
 
 class TestParseParameters(unittest.TestCase):
 
-    def test_parse_valid_event(self):
-        stack_update_parameters = parse_event(SAMPLE_EVENT)
+    def setUp(self):
+        self.crassus = Crassus(SAMPLE_EVENT, None)
 
-        self.assertEqual(stack_update_parameters.stack_name, 'ANY_STACK')
+    def test_parse_valid_event(self):
+
+        self.assertEqual(self.crassus.stack_update_parameters.stack_name,
+                         'ANY_STACK')
 
 
 class TestNotify(unittest.TestCase):
@@ -171,7 +174,7 @@ class TestUpdateStack(unittest.TestCase):
         notify_mock.assert_called_once_with(ANY, 'ANY_ARN')"""
 
 
-class TestLoadStack(unittest.TestCase):
+class TestLoad(unittest.TestCase):
 
     def setUp(self):
         self.patcher = patch('boto3.resource')
@@ -181,12 +184,14 @@ class TestLoadStack(unittest.TestCase):
         self.stack_mock = Mock()
         self.resource_mock.return_value = self.cloudformation_mock
         self.cloudformation_mock.Stack.return_value = self.stack_mock
+        self.crassus = Crassus(None, None)
+        self.crassus._stack_name = 'ANY_STACK'
 
     def tearDown(self):
         self.patcher.stop()
 
     def test_deploy_stack_should_load_stack(self):
-        load_stack('ANY_STACK')
+        self.crassus.load()
         self.stack_mock.load.assert_called_once_with()
 
     @patch('crassus.deployer.logger')
@@ -194,7 +199,7 @@ class TestLoadStack(unittest.TestCase):
         self.stack_mock.load.side_effect = ClientError(
             {'Error': {'Code': 'ExpectedException', 'Message': ''}},
             'test_deploy_stack_should_notify_error_in_case_of_client_error')
-        load_stack('ANY_STACK')
+        self.crassus.load()
         logger_mock.error.assert_called_once_with(ANY)
 
     """
