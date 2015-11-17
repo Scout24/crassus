@@ -38,10 +38,9 @@ class CreateStack(threading.Thread):
 
 
 class CrassusIntegrationTest(unittest.TestCase):
-
     def setUp(self):
-	fqdn = socket.gethostname()
-	hostname =  fqdn[:fqdn.find('.')] if '.' in fqdn else fqdn
+        fqdn = socket.gethostname()
+        hostname = fqdn[:fqdn.find('.')] if '.' in fqdn else fqdn
         self.test_id = 'crassus-it-{0}-{1}' \
             .format(hostname,
                     datetime.utcnow().strftime('%Y%m%d%H%M%S'))
@@ -192,6 +191,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             'stacks': {
                 self.app_stack_name: {
                     'template-url': 's3://is24-python-docker-hello-world-webapp/latest/ecs-minimal-webapp.json',
+                    'timeout': 1200,
                     'parameters': {
                         'vpcId': vpc_id,
                         'subnetIds': subnet_ids,
@@ -256,7 +256,6 @@ class CrassusIntegrationTest(unittest.TestCase):
                 logger.info(client_error.message)
                 sleep(60)
                 self.delete_stack_when_update_finished(stack_name)
-
 
     def ignore_client_error(self, function):
         try:
