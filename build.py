@@ -82,6 +82,7 @@ def set_properties_for_teamcity_builds(project):
 @init(environments='integration_env')
 def set_properties_for_teamcity_integration_test(project):
     use_plugin("python.integrationtest")
+    project.set_property('integrationtest_inherit_environment', True)
 
 
 @task('build_json', description='Convert & upload CFN JSON from the template YAML files')
