@@ -40,8 +40,10 @@ class CreateStack(threading.Thread):
 class CrassusIntegrationTest(unittest.TestCase):
 
     def setUp(self):
+	fqdn = socket.gethostname()
+	hostname =  fqdn[:fqdn.find('.')] if '.' in fqdn else fqdn
         self.test_id = 'crassus-it-{0}-{1}' \
-            .format(socket.gethostname(),
+            .format(hostname,
                     datetime.utcnow().strftime('%Y%m%d%H%M%S'))
         self.invoker_role_name = 'crassus-invoker-it-{0}'.format(self.test_id)
         self.crassus_stack_name = self.test_id
