@@ -2,7 +2,6 @@
 
 import boto3
 import os
-import json
 
 
 def assume_role():
@@ -18,9 +17,8 @@ def format_(credentials):
                "SessionToken": "AWS_SECURITY_TOKEN",
                "AccessKeyId": "AWS_ACCESS_KEY_ID"}
 
-    cred = json.loads(credentials)
-    for key, value in cred.items():
-        print "export {0}={1}".format(key_map[key], value)
+    for key, value in key_map.items():
+        print "export {0}={1}".format(value, credentials[key])
 
 
 if __name__ == "__main__":
