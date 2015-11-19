@@ -10,7 +10,7 @@ use_plugin("python.core")
 use_plugin("python.unittest")
 use_plugin("python.install_dependencies")
 use_plugin("python.flake8")
-use_plugin("pypi:pybuilder_aws_lambda_plugin")
+use_plugin("pypi:pybuilder_aws_plugin")
 use_plugin("python.coverage")
 
 name = 'crassus'
