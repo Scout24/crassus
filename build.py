@@ -49,6 +49,11 @@ def set_properties(project):
         'lambda_file_access_control',
         os.environ.get('LAMBDA_FILE_ACCESS_CONTROL'))
 
+    project.setProperty('template_files',
+        [
+            ('cfn-sphere/templates','crassus.yaml'),
+        ])
+
     project.set_property('distutils_classifiers', [
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -73,7 +78,7 @@ def set_properties_for_teamcity_builds(project):
         'publish',
         'package_lambda_code',
         'upload_zip_to_s3',
-        'build_json',
+        'upload_cfn_to_s3',
     ]
     project.set_property('install_dependencies_index_url',
                          os.environ.get('PYPIPROXY_URL'))
@@ -84,23 +89,3 @@ def set_properties_for_teamcity_integration_test(project):
     use_plugin("python.integrationtest")
     project.set_property('integrationtest_inherit_environment', True)
 
-
-@task('build_json', description='Convert & upload CFN JSON from the template YAML files')
-def build_json(project, logger):
-    from cfn_sphere.aws.cloudformation.template_loader import (
-        CloudFormationTemplateLoader)
-    from cfn_sphere.aws.cloudformation.template_transformer import (
-        CloudFormationTemplateTransformer)
-
-    template = CloudFormationTemplateLoader.get_template_from_url(
-        'crassus.yaml', 'cfn-sphere/templates')
-    transformed = CloudFormationTemplateTransformer.transform_template(
-        template)
-    output = transformed.get_template_json()
-
-    bucket_name = project.get_property('bucket_name')
-    version_path = 'v{0}/{1}.json'.format(project.version, project.name)
-    latest_path = 'latest/{0}.json'.format(project.name)
-
-    upload_helper(project, logger, bucket_name, version_path, output)
-    upload_helper(project, logger, bucket_name, latest_path, output)
