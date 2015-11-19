@@ -21,7 +21,7 @@ def format_(credentials):
 
     for key, value in key_map.items():
         print "export {0}={1}".format(value, credentials[key])
-
+    print "export AWS_SECURITY_TOKEN=".format(credentials['SessionToken'])
 
 if __name__ == "__main__":
     format_(json.loads(sys.stdin.read())['Credentials'])
