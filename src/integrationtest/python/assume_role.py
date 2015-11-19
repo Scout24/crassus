@@ -14,7 +14,7 @@ def assume_role():
 
 def format_(credentials):
     key_map = {"SecretAccessKey": "AWS_SECRET_ACCESS_KEY",
-               "SessionToken": "AWS_SECURITY_TOKEN",
+               "SessionToken": "AWS_SESSION_TOKEN",
                "AccessKeyId": "AWS_ACCESS_KEY_ID"}
 
     for key, value in key_map.items():
