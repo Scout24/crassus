@@ -49,7 +49,7 @@ def set_properties(project):
         'lambda_file_access_control',
         os.environ.get('LAMBDA_FILE_ACCESS_CONTROL'))
 
-    project.setProperty('template_files',
+    project.set_property('template_files',
         [
             ('cfn-sphere/templates','crassus.yaml'),
         ])
