@@ -32,6 +32,11 @@ Parameters:
     ConstraintDescription: must be a valid Amazon Resource Name e.g. arn:aws:iam::123456789012:role/cld-chain
     Description: ARN of the principal that is allowed to send stack update messages and listen for results
     Type: String
+  integrationTestArn:
+    AllowedPattern: arn:aws:iam::[0-9]{12}:[\S]+
+    ConstraintDescription: must be a valid Amazon Resource Name e.g. arn:aws:iam::123456789012:role/cld-chain
+    Description: role ARN which should be able to assume the integration-test role>
+    Type: String
 Resources:
   inputSnsTopic:
     Type: AWS::SNS::Topic
@@ -105,6 +110,17 @@ Resources:
             - '*'
           Version: '2012-10-17'
         PolicyName: lambdaStackUpdatePolicy
+  integrationTestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns: ['arn:aws:iam::aws:policy/AdministratorAccess']
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            AWS: Ref: integrationTestArn
+        Version: '2012-11-20'
   updateStackFunction:
     Type: AWS::Lambda::Function
     Properties:

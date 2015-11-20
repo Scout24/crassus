@@ -6,3 +6,4 @@ stacks:
       zipFile: latest/crassus.zip
       bucketName: crassus-lambda-zips <Bucket Policy is set to Requester Pays>
       triggeringUserArn: <user/role ARN which will trigger deployment via CRASSUS">
+      integrationTestArn: <role ARN which should be able to assume the integration-test role>
