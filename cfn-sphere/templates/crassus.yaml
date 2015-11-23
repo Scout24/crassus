@@ -124,6 +124,15 @@ Resources:
       Principal: sns.amazonaws.com
       SourceArn:
         Ref: inputSnsTopic
+  cfnOutputConverterPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName:
+        Ref: cfnOutputConverterFunction
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: cfnOutputSnsTopic
   cfnOutputConverterFunction:
     Type: AWS::Lambda::Function
     Properties:
