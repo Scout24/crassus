@@ -1,9 +1,12 @@
 region: eu-west-1
 stacks:
   crassus:
-    template-url: templates/crassus_int_test.yaml
+    template-url: templates/crassus.yaml
     parameters:
       zipFile: latest/crassus.zip
       bucketName: crassus-lambda-zips <Bucket Policy is set to Requester Pays>
       triggeringUserArn: <user/role ARN which will trigger deployment via CRASSUS">
+  crassus-integrationTest-role:
+    template-url: templates/crassus_integration_test_role.yaml
+    parameters:
       integrationTestArn: <role ARN which should be able to assume the integration-test role>
