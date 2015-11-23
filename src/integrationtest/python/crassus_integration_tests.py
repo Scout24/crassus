@@ -96,8 +96,7 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def assume_role(self, invoker_role):
         credentials = self.sts_client.assume_role(
-            RoleArn=invoker_role.arn, RoleSessionName='{0}'.format(
-                self.test_id))['Credentials']
+            RoleArn=invoker_role.arn, RoleSessionName='crassus-it')['Credentials']
 
         ec2 = boto3.client(service_name='ec2', region_name=REGION_NAME,
                            aws_access_key_id=credentials['AccessKeyId'],
