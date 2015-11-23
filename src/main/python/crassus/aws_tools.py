@@ -15,7 +15,7 @@ class StackResourceException(AwsToolsBaseException):
     pass
 
 
-def get_arn_by_resource_name(context, stack_name, resource_name):
+def get_physical_by_logical_id(context, stack_name, resource_id):
     """
     Get a physical ID (mostly ARN) from a logical ID in a given stack's
     parameters.
@@ -30,7 +30,7 @@ def get_arn_by_resource_name(context, stack_name, resource_name):
         # We got a weird/nonexistent response code
         raise StackResourceException('Erroneous HTTPStatusCode.')
     for parameters_item in stack_param_dict.get('StackResourceSummaries', []):
-        if parameters_item['LogicalResourceId'] == resource_name:
+        if parameters_item['LogicalResourceId'] == resource_id:
             return parameters_item['PhysicalResourceId']
 
 
@@ -52,7 +52,13 @@ def get_my_stack_name(context):
         # We got a weird/nonexistent response code
         return
     for item in stack_dict.get('StackSummaries', []):
+        stack_name = item['StackName']
         try:
-            get_arn_by_resource_name(context, stack_name, resource_name)
+            resource_id = get_physical_by_logical_id(
+                context, stack_name, context.invoked_function_arn)
         except StackResourceException:
             continue
+        if resource_id is not None:
+            # Got the resource id, our stack name is the current
+            # stack_name
+            return stack_name
