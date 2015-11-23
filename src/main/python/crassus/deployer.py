@@ -103,8 +103,7 @@ class Crassus(object):
             self.stack.update(
                 UsePreviousTemplate=True,
                 Parameters=merged,
-                Capabilities=['CAPABILITY_IAM'],
-                NotificationARNs=None)
+                Capabilities=['CAPABILITY_IAM'])
                 #NotificationARNs=self.output_topics)
             message = 'Cloudformation was triggered successfully.'
             logger.debug(message)
