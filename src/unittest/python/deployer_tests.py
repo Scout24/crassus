@@ -152,8 +152,7 @@ class TestUpdateStack(unittest.TestCase):
         self.stack_mock.update.assert_called_once_with(
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
-            Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=None)
+            Capabilities=['CAPABILITY_IAM'])
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
