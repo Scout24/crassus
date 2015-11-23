@@ -3,7 +3,7 @@ import logging
 
 import boto3
 from botocore.exceptions import ClientError
-from crassus.result_message import ResultMessage
+from crassus.gaius_message import GaiusMessage
 
 logger = logging.getLogger('crassus-deployer')
 logger.setLevel(logging.DEBUG)
@@ -76,7 +76,7 @@ class Crassus(object):
     def notify(self, status, message):
         if self.output_topics is None:
             return
-        result_message = ResultMessage(status, message, self.stack_name)
+        result_message = GaiusMessage(status, message, self.stack_name)
         for topic_arn in self.output_topics:
             notification_topic = self.aws_sns.Topic(topic_arn)
             notification_topic.publish(
@@ -92,7 +92,7 @@ class Crassus(object):
         except ClientError as error:
             logger.error(MESSAGE_STACK_NOT_FOUND.format(
                 stack_name=self.stack_name, message=error.message))
-            self.notify(ResultMessage.STATUS_FAILURE, error.message)
+            self.notify(GaiusMessage.STATUS_FAILURE, error.message)
 
     def update(self):
         merged = self.stack_update_parameters.merge(self.stack.parameters)
@@ -106,11 +106,11 @@ class Crassus(object):
                 # NotificationARNs=self.output_topics)
             message = 'Cloudformation was triggered successfully.'
             logger.debug(message)
-            self.notify(ResultMessage.STATUS_SUCCESS, message)
+            self.notify(GaiusMessage.STATUS_SUCCESS, message)
         except ClientError as error:
             logger.error(MESSAGE_UPDATE_PROBLEM.format(
                 stack_name=self.stack_name, message=error.message))
-            self.notify(ResultMessage.STATUS_FAILURE, error.message)
+            self.notify(GaiusMessage.STATUS_FAILURE, error.message)
 
     def deploy(self):
         self.load()

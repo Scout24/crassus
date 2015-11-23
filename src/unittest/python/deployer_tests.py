@@ -4,8 +4,9 @@ from textwrap import dedent
 from botocore.exceptions import ClientError
 from mock import ANY, Mock, patch
 
+from crassus.gaius_message import GaiusMessage
 from crassus.deployer import (
-    Crassus, NOTIFICATION_SUBJECT, ResultMessage, StackUpdateParameter,)
+    Crassus, NOTIFICATION_SUBJECT, StackUpdateParameter,)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -39,10 +40,10 @@ SAMPLE_EVENT = {
                            '"stackName": "ANY_STACK", '
                            '"region": "eu-west-1", '
                            '"parameters": '
-                               '[{"updateParameterKey": "ANY_NAME1", '
-                               '"updateParameterValue": "ANY_VALUE1"}, '
-                               '{"updateParameterKey": "ANY_NAME2", '
-                               '"updateParameterValue": "ANY_VALUE2"}]}',
+                '[{"updateParameterKey": "ANY_NAME1", '
+                '"updateParameterValue": "ANY_VALUE1"}, '
+                '{"updateParameterKey": "ANY_NAME2", '
+                '"updateParameterValue": "ANY_VALUE2"}]}',
                 'MessageAttributes': {
                 },
                 'Type': 'Notification',
@@ -100,7 +101,7 @@ class TestNotify(unittest.TestCase):
             MessageStructure='string')
         import json
         kwargs = topic_mock.publish.call_args[1]
-        expected = ResultMessage(self.STATUS, self.MESSAGE, STACK_NAME)
+        expected = GaiusMessage(self.STATUS, self.MESSAGE, STACK_NAME)
         self.assertEqual(expected, json.loads(kwargs['Message']))
 
     @patch('crassus.deployer.Crassus.output_topics', None)
@@ -312,10 +313,10 @@ class TestOutputTopic(unittest.TestCase):
         logger_mock.error.assert_called_once_with(ANY)
 
 
-class TestResultMessage(unittest.TestCase):
+class TestGaiusMessage(unittest.TestCase):
 
     def test_constructor(self):
-        result_message = ResultMessage('my_status', 'my_message', 'stack_name')
+        result_message = GaiusMessage('my_status', 'my_message', 'stack_name')
         self.assertEqual(result_message['version'], '1.0')
         self.assertEqual(result_message['status'], 'my_status')
         self.assertEqual(result_message['message'], 'my_message')

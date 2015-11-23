@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-class ResultMessage(dict):
+class GaiusMessage(dict):
 
     """
     A message that crassus returns for events such as fail or success
     events for stack deployments/updates. These messages will be
-    transmitted as JSON encoded strings.
+    transmitted as JSON encoded strings, used by Gaius.
 
     It is initialized with the following parameters:
     - status: STATUS_FAILURE or STATUS_SUCCESS

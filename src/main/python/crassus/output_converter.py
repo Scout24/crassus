@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from result_message import ResultMessage
+from __future__ import print_function
+
+from gaius_message import GaiusMessage
 
 
 class OutputConverter(object):
@@ -18,6 +20,6 @@ class OutputConverter(object):
         self.context = context
 
     def convert(self):
-        pass
+        print('convert:', self.event, self.context)
 
-ResultMessage
+GaiusMessage
