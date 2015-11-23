@@ -139,22 +139,31 @@ class TestUpdateStack(unittest.TestCase):
              "UsePreviousValue": True
              }
         ]
-        self.crassus = Crassus(None, None)
+        self.context_mock = Mock(invoked_function_arn="any_arn",
+                                 function_version="any_version")
+        self.crassus = Crassus(None, self.context_mock)
         self.crassus._stack_update_parameters = \
             StackUpdateParameter(self.update_parameters)
         self.crassus.stack = self.stack_mock
         self.crassus._stack_name = STACK_NAME
         self.crassus._output_topics = ANY_TOPIC
+        self.crassus.aws_lambda = Mock()
+        self.crassus.aws_lambda.get_function_configuration.return_value = {
+            'Description': dedent("""
+                {"result_queue":[
+                    "arn:aws:sns:eu-west-1:123456789012:crassus-output",
+                    "arn:aws:sns:eu-west-1:123456789012:random-topic"
+                    ],
+                    "cfn_events": ["CFN-SNS-TOPIC-1"]}""")}
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     def test_update_stack_should_call_update(self):
         self.crassus.update()
-
         self.stack_mock.update.assert_called_once_with(
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=ANY_TOPIC)
+            NotificationARNs=['CFN-SNS-TOPIC-1'])
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
@@ -287,7 +296,8 @@ class TestOutputTopic(unittest.TestCase):
                 {"result_queue":[
                     "arn:aws:sns:eu-west-1:123456789012:crassus-output",
                     "arn:aws:sns:eu-west-1:123456789012:random-topic"
-                    ]}""")
+                    ],
+                    "cfn_events": ["CFN-SNS-TOPIC-1"]}""")
         }
         topic_list = self.crassus.output_topics
         expected = ["arn:aws:sns:eu-west-1:123456789012:crassus-output",
