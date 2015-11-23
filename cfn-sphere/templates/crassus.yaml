@@ -2,18 +2,26 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: crassus (Cross Account Smart Software Update Service)
 Outputs:
   inputSnsTopicARN:
-    Description: Topic ARN to send stack update messages to
+    Description: Topic ARN to send stack update messages to.
     Value:
       Ref: inputSnsTopic
   outputSqsQueue:
-    Description: SQS queue URL for receiving messages from crassus
+    Description: SQS queue URL for receiving messages from crassus & CFN.
     Value:
       Ref: outputSqsQueue
   lambdaFunctionName:
     Description: Name of the crassus Lambda function, to be used in separate API call to allow
-      subscription to input SNS topic
+      subscription to input SNS topic.
     Value:
       Ref: updateStackFunction
+  cfnOutputConverterFunctionName:
+    Description: The part of Crassus with converts received cloudformation messages to Gaius format.
+    Value:
+      Ref: cfnOutputConverterFunction
+  cfnOutputSnsTopic:
+    Description: The topic which CFN outputs their messages into.
+    Value:
+      Ref: cfnOutputSnsTopic
 Parameters:
   bucketName:
     Default: is24-crassus
@@ -143,6 +151,35 @@ Resources:
         - Arn
       Runtime: python2.7
       Timeout: 15
+  cfnOutputSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Topic ARN to receive messages from cloudformation for format conversion.
+      Subscription:
+      - Endpoint:
+          Fn::GetAtt:
+          - cfnOutputConverterFunction
+          - Arn
+        Protocol: lambda
+      TopicName:
+        '|join|-':
+          - Ref: AWS::StackName
+          - cfn-snsinput
+  cfnOutputSnsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action: sns:Publish
+          Effect: Allow
+          Principal:
+            AWS:
+              Ref: triggeringUserArn
+          Resource:
+            Ref: cfnOutputSnsTopic
+        Version: '2012-10-17'
+      Topics:
+      - Ref: cfnOutputSnsTopic
   outputSqsReceivePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:
