@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from gaius_message import GaiusMessage
+import boto3
+
+from deployment_response import DeploymentResponse
 
 
 class OutputConverter(object):
@@ -22,4 +24,4 @@ class OutputConverter(object):
     def convert(self):
         print('convert:', self.event, self.context)
 
-GaiusMessage
+DeploymentResponse

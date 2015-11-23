@@ -15,4 +15,3 @@ def cfn_output_converter(event, context):
     """
     output_converter = OutputConverter(event, context)
     output_converter.convert()
-    print('EVENT:', dir(event))

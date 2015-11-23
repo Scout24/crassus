@@ -18,10 +18,6 @@ Outputs:
     Description: The part of Crassus with converts received cloudformation messages to Gaius format.
     Value:
       Ref: cfnOutputConverterFunction
-  cfnOutputSnsTopic:
-    Description: The topic which CFN outputs their messages into.
-    Value:
-      Ref: cfnOutputSnsTopic
 Parameters:
   bucketName:
     Default: is24-crassus
@@ -107,10 +103,11 @@ Resources:
           - ""
           -
             - '{'
-            - '"queue_list":["'
+            - '"result_queue":["'
             - Ref: outputSqsQueue
-            - '"]'
-            - '}'
+            - '"],"cfn_events":["'
+            - Ref: cfnOutputSnsTopic
+            - '"]}'
       Handler: crassus_deployer_lambda.handler
       Role:
         Fn::GetAtt:
@@ -139,11 +136,9 @@ Resources:
         Fn::Join:
           - ""
           -
-            - '{'
-            - '"queue_list":["'
+            - '{"result_queue":["'
             - Ref: outputSqsQueue
-            - '"]'
-            - '}'
+            - '"]}'
       Handler: crassus_deployer_lambda.cfn_output_converter
       Role:
         Fn::GetAtt:
@@ -161,25 +156,6 @@ Resources:
           - cfnOutputConverterFunction
           - Arn
         Protocol: lambda
-      TopicName:
-        '|join|-':
-          - Ref: AWS::StackName
-          - cfn-snsinput
-  cfnOutputSnsTopicPolicy:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      PolicyDocument:
-        Statement:
-        - Action: sns:Publish
-          Effect: Allow
-          Principal:
-            AWS:
-              Ref: triggeringUserArn
-          Resource:
-            Ref: cfnOutputSnsTopic
-        Version: '2012-10-17'
-      Topics:
-      - Ref: cfnOutputSnsTopic
   outputSqsReceivePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:
@@ -194,8 +170,13 @@ Resources:
               AWS:
                 Ref: triggeringUserArn
             Action:
-              - "sqs:ReceiveMessage"
-            Resource: "*"
+              - "SQS:ReceiveMessage"
+              - "SQS:DeleteMessage"
+              - "SQS:GetQueueUrl"
+            Resource:
+              Fn::GetAtt:
+                - outputSqsQueue
+                - Arn
       Queues:
         -
           Ref: outputSqsQueue

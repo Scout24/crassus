@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class GaiusMessage(dict):
+class DeploymentResponse(dict):
 
     """
     A message that crassus returns for events such as fail or success

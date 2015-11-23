@@ -4,7 +4,7 @@ from textwrap import dedent
 from botocore.exceptions import ClientError
 from mock import ANY, Mock, patch
 
-from crassus.gaius_message import GaiusMessage
+from crassus.deployment_response import DeploymentResponse
 from crassus.deployer import (
     Crassus, NOTIFICATION_SUBJECT, StackUpdateParameter,)
 
@@ -101,7 +101,7 @@ class TestNotify(unittest.TestCase):
             MessageStructure='string')
         import json
         kwargs = topic_mock.publish.call_args[1]
-        expected = GaiusMessage(self.STATUS, self.MESSAGE, STACK_NAME)
+        expected = DeploymentResponse(self.STATUS, self.MESSAGE, STACK_NAME)
         self.assertEqual(expected, json.loads(kwargs['Message']))
 
     @patch('crassus.deployer.Crassus.output_topics', None)
@@ -316,7 +316,8 @@ class TestOutputTopic(unittest.TestCase):
 class TestGaiusMessage(unittest.TestCase):
 
     def test_constructor(self):
-        result_message = GaiusMessage('my_status', 'my_message', 'stack_name')
+        result_message = DeploymentResponse(
+            'my_status', 'my_message', 'stack_name')
         self.assertEqual(result_message['version'], '1.0')
         self.assertEqual(result_message['status'], 'my_status')
         self.assertEqual(result_message['message'], 'my_message')
