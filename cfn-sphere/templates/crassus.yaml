@@ -164,7 +164,7 @@ Resources:
         Id: outputSqsReceivePolicy
         Statement:
           -
-            Sid: "Allow-ReceiveMessage-from-outputSqsQueue"
+            Sid: "Allow-All-from-outputSqsQueue"
             Effect: "Allow"
             Principal:
               AWS:
