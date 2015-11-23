@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: crassus (Cross Account Smart Software Update Service)
+Description: crassus (Cross Account Smart Software Update Service) with support for integration tests
 Outputs:
   inputSnsTopicARN:
     Description: Topic ARN to send stack update messages to
