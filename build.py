@@ -52,6 +52,7 @@ def set_properties(project):
     project.set_property('template_files',
         [
             ('cfn-sphere/templates','crassus.yaml'),
+            ('cfn-sphere/templates','crassus_int_test.yaml'),
         ])
 
     project.set_property('distutils_classifiers', [
