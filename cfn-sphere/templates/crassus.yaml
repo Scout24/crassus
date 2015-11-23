@@ -116,12 +116,13 @@ Resources:
       ManagedPolicyArns: ['arn:aws:iam::aws:policy/AdministratorAccess']
       AssumeRolePolicyDocument:
         Statement:
-        - Action: sts:AssumeRole
+        - Action: 
+          - sts:AssumeRole
           Effect: Allow
           Principal:
             AWS: 
               Ref: integrationTestArn
-        Version: '2012-11-20'
+        Version: '2012-10-17'
   updateStackFunction:
     Type: AWS::Lambda::Function
     Properties:
