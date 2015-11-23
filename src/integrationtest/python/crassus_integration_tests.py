@@ -96,8 +96,7 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def assume_role(self, invoker_role):
         credentials = self.sts_client.assume_role(
-            RoleArn=invoker_role.arn, RoleSessionName='{0}'.format(
-                self.test_id))['Credentials']
+            RoleArn=invoker_role.arn, RoleSessionName='crassus-it')['Credentials']
 
         ec2 = boto3.client(service_name='ec2', region_name=REGION_NAME,
                            aws_access_key_id=credentials['AccessKeyId'],
@@ -132,7 +131,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             logger.info('Checking output from {0}: {1}'.format(
                 hello_world_url, hello_world))
 
-            if re.compile('.*?python-docker-hello-world-webapp 40.*').match(
+            if re.compile('.*?python-docker-hello-world-webapp.*').match(
                     hello_world):
                 update_successful = True
                 break
