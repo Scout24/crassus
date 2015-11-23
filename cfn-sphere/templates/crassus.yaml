@@ -119,7 +119,8 @@ Resources:
         - Action: sts:AssumeRole
           Effect: Allow
           Principal:
-            AWS: Ref: integrationTestArn
+            AWS: 
+              Ref: integrationTestArn
         Version: '2012-11-20'
   updateStackFunction:
     Type: AWS::Lambda::Function
