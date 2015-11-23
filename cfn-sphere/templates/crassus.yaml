@@ -5,16 +5,12 @@ Outputs:
     Description: Topic ARN to send stack update messages to
     Value:
       Ref: inputSnsTopic
-  outputSnsTopicARN:
-    Description: Topic ARN to receive messages from CFN/lambdas
-    Value:
-      Ref: outputSnsTopic
   outputSqsQueue:
     Description: SQS queue URL for receiving messages from crassus
     Value:
       Ref: outputSqsQueue
   lambdaFunctionName:
-    Description: Name of the crassus Lambda function, to be used in seperate API call to allow
+    Description: Name of the crassus Lambda function, to be used in separate API call to allow
       subscription to input SNS topic
     Value:
       Ref: updateStackFunction
@@ -46,22 +42,7 @@ Resources:
       TopicName:
         '|join|-':
           - Ref: AWS::StackName
-          - input
-  outputSnsTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: Topic ARN to receive messages from CFN/lambdas
-      TopicName:
-        '|join|-':
-          - Ref: AWS::StackName
-          - output
-      Subscription:
-        -
-          Endpoint:
-            Fn::GetAtt:
-              - outputSqsQueue
-              - Arn
-          Protocol: sqs
+          - snsinput
   inputSnsTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
@@ -118,8 +99,8 @@ Resources:
           - ""
           -
             - '{'
-            - '"topic_list":["'
-            - Ref: outputSnsTopic
+            - '"queue_list":["'
+            - Ref: outputSqsQueue
             - '"]'
             - '}'
       Handler: crassus_deployer_lambda.handler
@@ -138,33 +119,36 @@ Resources:
       Principal: sns.amazonaws.com
       SourceArn:
         Ref: inputSnsTopic
-  OutputSqsPolicy:
-    Type: "AWS::SQS::QueuePolicy"
+  cfnOutputConverterFunction:
+    Type: AWS::Lambda::Function
     Properties:
-      PolicyDocument:
-        Version: "2012-10-17"
-        Id: OutputSqsPolicy
-        Statement:
+      Code:
+        S3Bucket:
+          Ref: bucketName
+        S3Key:
+          Ref: zipFile
+      Description:
+        Fn::Join:
+          - ""
           -
-            Sid: "Allow-SendMessage-to-outputSqsQueue-from-outputSnsTopic"
-            Effect: "Allow"
-            Principal: "*"
-            Action:
-              - "sqs:SendMessage"
-            Resource: "*"
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  Ref: outputSnsTopic
-      Queues:
-        -
-          Ref: outputSqsQueue
-  OutputSqsReceivePolicy:
+            - '{'
+            - '"queue_list":["'
+            - Ref: outputSqsQueue
+            - '"]'
+            - '}'
+      Handler: crassus_deployer_lambda.cfn_output_converter
+      Role:
+        Fn::GetAtt:
+        - stackUpdateRole
+        - Arn
+      Runtime: python2.7
+      Timeout: 15
+  outputSqsReceivePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:
       PolicyDocument:
         Version: "2012-10-17"
-        Id: OutputSqsReceivePolicy
+        Id: outputSqsReceivePolicy
         Statement:
           -
             Sid: "Allow-ReceiveMessage-from-outputSqsQueue"
