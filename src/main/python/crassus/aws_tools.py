@@ -15,7 +15,7 @@ class StackResourceException(AwsToolsBaseException):
     pass
 
 
-def get_physical_by_logical_id(context, stack_name, resource_id):
+def get_physical_by_logical_id(stack_name, resource_id):
     """
     Get a physical ID (mostly ARN) from a logical ID in a given stack's
     parameters.
@@ -34,10 +34,9 @@ def get_physical_by_logical_id(context, stack_name, resource_id):
             return parameters_item['PhysicalResourceId']
 
 
-def get_my_stack_name(context):
+def get_my_stack_name_by_func_arn(invoked_function_arn):
     """
-    Get the stack name for the currently running lambda from the
-    context.
+    Get the stack name for an invoked function ARN.
 
     Returns the stack name if found, None if not available or in case
     of any errors.
@@ -55,7 +54,7 @@ def get_my_stack_name(context):
         stack_name = item['StackName']
         try:
             resource_id = get_physical_by_logical_id(
-                context, stack_name, context.invoked_function_arn)
+                stack_name, invoked_function_arn)
         except StackResourceException:
             continue
         if resource_id is not None:

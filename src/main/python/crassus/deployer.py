@@ -63,7 +63,7 @@ class Crassus(object):
         )['Description']
         try:
             data = json.loads(description)
-            self._output_topics = data['topic_list']
+            self._output_topics = data['result_queue']
             logger.debug('Extracted Output Topic(s): %r', self._output_topics)
             return self._output_topics
         except ValueError:

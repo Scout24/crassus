@@ -284,7 +284,7 @@ class TestOutputTopic(unittest.TestCase):
     def test_output_topics_returns_arn_list(self):
         self.boto3_client().get_function_configuration.return_value = {
             'Description': dedent("""
-                {"topic_list":[
+                {"result_queue":[
                     "arn:aws:sns:eu-west-1:123456789012:crassus-output",
                     "arn:aws:sns:eu-west-1:123456789012:random-topic"
                     ]}""")
