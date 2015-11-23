@@ -131,7 +131,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             logger.info('Checking output from {0}: {1}'.format(
                 hello_world_url, hello_world))
 
-            if re.compile('.*?python-docker-hello-world-webapp 40.*').match(
+            if re.compile('.*?python-docker-hello-world-webapp.*').match(
                     hello_world):
                 update_successful = True
                 break
