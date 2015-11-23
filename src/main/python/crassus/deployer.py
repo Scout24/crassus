@@ -28,6 +28,7 @@ class Crassus(object):
         self.aws_lambda = boto3.client('lambda')
 
         self._output_topics = None
+        self._cfn_output_topics = None
         self._stack_update_parameters = None
         self._stack_name = None
         self.stack = None
@@ -51,27 +52,44 @@ class Crassus(object):
         logger.debug('Extracted Update Parameters: %r',
                      self._stack_update_parameters)
 
-    @property
-    def output_topics(self):
-        if self._output_topics:
-            return self._output_topics
-        FunctionName = self.context.invoked_function_arn
-        Qualifier = self.context.function_version
+    def _get_config_property(self, property_name):
+        """
+        Extract JSON properties from the JSON encoded description.
+        """
+        function_arn = self.context.invoked_function_arn
+        qualifier = self.context.function_version
         description = self.aws_lambda.get_function_configuration(
-            FunctionName=FunctionName,
-            Qualifier=Qualifier
+            FunctionName=function_arn,
+            Qualifier=qualifier
         )['Description']
         try:
             data = json.loads(description)
-            self._output_topics = data['result_queue']
-            logger.debug('Extracted Output Topic(s): %r', self._output_topics)
-            return self._output_topics
+            return_value = data[property_name]
+            logger.debug('Extracted {0} property: %{1}'.format(
+                property_name, repr(return_value)))
+            return return_value
         except ValueError:
             logger.error(
                 'Description of function must contain JSON, but was "{0}"'
                 .format(description))
         except KeyError:
-            logger.error('Unable to find the output SNS topic')
+            logger.error((
+                'Unable to find \'{0}\' property in the JSON '
+                'description.').format(property_name))
+
+    @property
+    def output_topics(self):
+        if self._output_topics:
+            return self._output_topics
+        self._output_topics = self._get_config_property('result_queue')
+        return self._output_topics
+
+    @property
+    def cfn_output_topics(self):
+        if self._cfn_output_topics is not None:
+            return self._cfn_output_topics
+        self._cfn_output_topics = self._get_config_property('cfn_events')
+        return self._cfn_output_topics
 
     def notify(self, status, message):
         if self.output_topics is None:
@@ -102,8 +120,8 @@ class Crassus(object):
                 UsePreviousTemplate=True,
                 Parameters=merged,
                 Capabilities=['CAPABILITY_IAM'],
-                NotificationARNs=None)
-            # NotificationARNs=self.output_topics)
+                # NotificationARNs=None)
+                NotificationARNs=self.output_topics)
             message = 'Cloudformation was triggered successfully.'
             logger.debug(message)
             self.notify(DeploymentResponse.STATUS_SUCCESS, message)

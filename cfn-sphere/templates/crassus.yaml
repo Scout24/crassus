@@ -156,6 +156,21 @@ Resources:
           - cfnOutputConverterFunction
           - Arn
         Protocol: lambda
+  cfnOutputSnsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action: sns:Publish
+          Effect: Allow
+          Principal:
+            AWS:
+              Ref: triggeringUserArn
+          Resource:
+            Ref: cfnOutputSnsTopic
+        Version: '2012-10-17'
+      Topics:
+      - Ref: inputSnsTopic
   outputSqsReceivePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:

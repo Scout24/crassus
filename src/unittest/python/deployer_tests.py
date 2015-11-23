@@ -154,7 +154,7 @@ class TestUpdateStack(unittest.TestCase):
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=None)
+            NotificationARNs=ANY_TOPIC)
 
     @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
