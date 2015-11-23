@@ -49,10 +49,10 @@ def set_properties(project):
         'lambda_file_access_control',
         os.environ.get('LAMBDA_FILE_ACCESS_CONTROL'))
 
-    project.set_property('template_files',
-                         [
-                             ('cfn-sphere/templates', 'crassus.yaml'),
-                         ])
+    project.set_property('template_files', [
+        ('cfn-sphere/templates', 'crassus.yaml'),
+        ('cfn-sphere/templates', 'crassus_integration_test_role.yaml'),
+    ])
 
     project.set_property('distutils_classifiers', [
         'Development Status :: 4 - Beta',

@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: crassus role to support integration tests
+Parameters:
+  integrationTestArn:
+    AllowedPattern: arn:aws:iam::[0-9]{12}:[\S]+
+    ConstraintDescription: must be a valid Amazon Resource Name e.g. arn:aws:iam::123456789012:role/cld-chain
+    Description: role ARN which should be able to assume the integration-test role>
+    Type: String
+Resources:
+  integrationTestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns: ['arn:aws:iam::aws:policy/AdministratorAccess']
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: 
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            AWS: 
+              Ref: integrationTestArn
+        Version: '2012-10-17'
+  
