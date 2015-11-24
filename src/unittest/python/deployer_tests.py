@@ -2,11 +2,11 @@ import unittest
 from textwrap import dedent
 
 from botocore.exceptions import ClientError
-from mock import ANY, Mock, patch
+from mock import ANY, Mock, patch, call
 
 from crassus.deployment_response import DeploymentResponse
 from crassus.deployer import (
-    Crassus, NOTIFICATION_SUBJECT, StackUpdateParameter,)
+    Crassus, NOTIFICATION_SUBJECT, StackUpdateParameter)
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
@@ -82,8 +82,9 @@ class TestNotify(unittest.TestCase):
     STATUS = 'success'
     MESSAGE = 'ANY MESSAGE'
 
+    @patch('crassus.deployer.sqs_send_message')
     @patch('boto3.resource')
-    def test_should_notify_sns(self, resource_mock):
+    def test_should_notify_sns(self, resource_mock, mock_sqs):
         topic_mock = Mock()
         sns_mock = Mock()
         sns_mock.Topic.return_value = topic_mock
@@ -95,14 +96,16 @@ class TestNotify(unittest.TestCase):
 
         self.crassus.notify(self.STATUS, self.MESSAGE)
 
-        topic_mock.publish.assert_called_once_with(
-            Message=ANY,
-            Subject=NOTIFICATION_SUBJECT,
-            MessageStructure='string')
-        import json
-        kwargs = topic_mock.publish.call_args[1]
-        expected = DeploymentResponse(self.STATUS, self.MESSAGE, STACK_NAME)
-        self.assertEqual(expected, json.loads(kwargs['Message']))
+        self.assertEquals(mock_sqs.call_count, 1)
+        self.assertEquals(
+            mock_sqs.call_args,
+            call(['ANY_TOPIC'], {
+                'status': 'success',
+                'timestamp': ANY,
+                'stackName': 'ANY_STACK',
+                'version': '1.1',
+                'message': 'ANY MESSAGE',
+                'emitter': 'crassus'}))
 
     @patch('crassus.deployer.Crassus.output_topics', None)
     def test_should_do_gracefully_nothing(self):
@@ -157,14 +160,18 @@ class TestUpdateStack(unittest.TestCase):
                     "cfn_events": ["CFN-SNS-TOPIC-1"]}""")}
 
     @patch('crassus.deployer.Crassus.notify', Mock())
-    def test_update_stack_should_call_update(self):
+    @patch('crassus.deployer.get_lambda_config_property')
+    def test_update_stack_should_call_update(self, mock_lambda):
+        mock_lambda.return_value = ['CFN-SQS-QUEUE-1']
         self.crassus.update()
         self.stack_mock.update.assert_called_once_with(
             UsePreviousTemplate=True,
             Parameters=self.expected_parameters,
             Capabilities=['CAPABILITY_IAM'],
-            NotificationARNs=['CFN-SNS-TOPIC-1'])
+            NotificationARNs=['CFN-SQS-QUEUE-1'])
+        self.assertEqual(self.crassus.cfn_output_topics, ['CFN-SQS-QUEUE-1'])
 
+    @patch('crassus.deployer.get_lambda_config_property', Mock())
     @patch('crassus.deployer.Crassus.notify', Mock())
     @patch('crassus.deployer.logger')
     def test_update_stack_load_throws_clienterror_exception(self, logger_mock):
@@ -206,13 +213,16 @@ class TestLoad(unittest.TestCase):
         self.crassus.load()
         self.stack_mock.load.assert_called_once_with()
 
+    @patch('crassus.deployer.sqs_send_message')
     @patch('crassus.deployer.logger')
-    def test_stack_load_throws_clienterror_exception(self, logger_mock):
+    def test_stack_load_throws_clienterror_exception(
+            self, logger_mock, mock_sqs):
         self.stack_mock.load.side_effect = ClientError(
             {'Error': {'Code': 'ExpectedException', 'Message': ''}},
             'test_deploy_stack_should_notify_error_in_case_of_client_error')
         self.crassus.load()
         logger_mock.error.assert_called_once_with(ANY)
+        self.assertEquals(mock_sqs.call_count, 1)
 
     """
     @patch('crassus.deployer.notify')
@@ -290,8 +300,9 @@ class TestOutputTopic(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
 
-    def test_output_topics_returns_arn_list(self):
-        self.boto3_client().get_function_configuration.return_value = {
+    @patch('crassus.aws_tools.aws_lambda')
+    def test_output_topics_returns_arn_list(self, mock_lambda):
+        mock_lambda.get_function_configuration.return_value = {
             'Description': dedent("""
                 {"result_queue":[
                     "arn:aws:sns:eu-west-1:123456789012:crassus-output",
@@ -304,18 +315,20 @@ class TestOutputTopic(unittest.TestCase):
                     "arn:aws:sns:eu-west-1:123456789012:random-topic", ]
         self.assertEqual(expected, topic_list)
 
-    @patch('crassus.deployer.logger')
-    def test_output_topics_handles_value_error(self, logger_mock):
-        self.boto3_client().get_function_configuration.return_value = {
+    @patch('crassus.aws_tools.aws_lambda')
+    @patch('crassus.aws_tools.logger')
+    def test_output_topics_handles_value_error(self, logger_mock, mock_lambda):
+        mock_lambda.get_function_configuration.return_value = {
             'Description': "NO_SUCH_JSON"
         }
         topic_list = self.crassus.output_topics
         self.assertEqual(None, topic_list)
         logger_mock.error.assert_called_once_with(ANY)
 
-    @patch('crassus.deployer.logger')
-    def test_output_topics_handles_key_error(self, logger_mock):
-        self.boto3_client().get_function_configuration.return_value = {
+    @patch('crassus.aws_tools.aws_lambda')
+    @patch('crassus.aws_tools.logger')
+    def test_output_topics_handles_key_error(self, logger_mock, mock_lambda):
+        mock_lambda.get_function_configuration.return_value = {
             'Description': '{"key": "value"}'
         }
         topic_list = self.crassus.output_topics
@@ -327,9 +340,11 @@ class TestGaiusMessage(unittest.TestCase):
 
     def test_constructor(self):
         result_message = DeploymentResponse(
-            'my_status', 'my_message', 'stack_name')
-        self.assertEqual(result_message['version'], '1.0')
-        self.assertEqual(result_message['status'], 'my_status')
-        self.assertEqual(result_message['message'], 'my_message')
+            'status', 'message', 'stack_name', 'timestamp', 'emitter')
+        self.assertEqual(result_message['version'], '1.1')
+        self.assertEqual(result_message['status'], 'status')
+        self.assertEqual(result_message['message'], 'message')
         self.assertEqual(result_message['stackName'], 'stack_name')
-        self.assertNotEqual(result_message['message'], 'NO_SUCH_MESSAGE')
+        self.assertEqual(result_message['timestamp'], 'timestamp')
+        self.assertEqual(result_message['emitter'], 'emitter')
+        self.assertNotEqual(result_message['message'], 'invalid message')

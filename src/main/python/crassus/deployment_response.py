@@ -15,12 +15,17 @@ class DeploymentResponse(dict):
     - message: the textual message for the notification.
     """
 
-    version = '1.0'
+    version = '1.1'
     STATUS_SUCCESS = 'success'
     STATUS_FAILURE = 'failure'
 
-    def __init__(self, status, message, stack_name):
+    EMITTER_CRASSUS = 'crassus'
+    EMITTER_CFN = 'cloudformation'
+
+    def __init__(self, status, message, stack_name, timestamp, emitter):
         self['version'] = self.version
+        self['emitter'] = emitter
         self['stackName'] = stack_name
+        self['timestamp'] = timestamp
         self['status'] = status
         self['message'] = message
