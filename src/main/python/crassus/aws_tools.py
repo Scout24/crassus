@@ -31,10 +31,10 @@ def get_physical_by_logical_id(stack_name, resource_id):  # pragma: no cover
     Raise StackResourceException if an error occurred, return None if
     not found, and return the ID if found.
     """
-    stack_param_dict = aws_cf.list_stack_resources(
-        StackName=stack_name)
-    if stack_param_dict.get(
-            'ResponseMetadata', {}).get('HTTPStatusCode') != 200:
+    stack_param_dict = aws_cf.list_stack_resources(StackName=stack_name)
+    stack_param_http_result = stack_param_dict.get(
+        'ResponseMetadata', {}).get('HTTPStatusCode')
+    if stack_param_http_result != 200:
         # We got a weird/nonexistent response code
         raise StackResourceException('Erroneous HTTPStatusCode.')
     for parameters_item in stack_param_dict.get('StackResourceSummaries', []):
@@ -53,9 +53,10 @@ def get_my_stack_name_by_func_arn(invoked_function_arn):  # pragma: no cover
         StackStatusFilter=[
             'CREATE_COMPLETE',
             'UPDATE_COMPLETE',
-        ]
-    )
-    if stack_dict.get('ResponseMetadata', {}).get('HTTPStatusCode') != 200:
+        ])
+    stack_param_http_result = stack_dict.get(
+        'ResponseMetadata', {}).get('HTTPStatusCode')
+    if stack_param_http_result != 200:
         # We got a weird/nonexistent response code
         return
     for item in stack_dict.get('StackSummaries', []):
@@ -110,6 +111,6 @@ def get_lambda_config_property(context, property_name):
             'Description of function must contain JSON, but was "{0}"'
             .format(description))
     except KeyError:
-        logger.error((
-            'Unable to find \'{0}\' property in the JSON '
-            'description.').format(property_name))
+        logger.error(
+            'Unable to find \'{0}\' property in the JSON description.'
+            .format(property_name))
