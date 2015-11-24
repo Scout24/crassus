@@ -4,7 +4,6 @@ from __future__ import print_function
 import json
 import logging
 
-import boto3
 from crassus.aws_tools import get_lambda_config_property, sqs_send_message
 from deployment_response import DeploymentResponse
 
@@ -76,4 +75,5 @@ class OutputConverter(object):
                 message['ResourceStatus'], message['ResourceStatusReason'],
                 message['StackName'], message['Timestamp'],
                 DeploymentResponse.EMITTER_CFN)
+            deployment_response['resourceType'] = message['ResourceType']
             sqs_send_message(queue_url_list, deployment_response)

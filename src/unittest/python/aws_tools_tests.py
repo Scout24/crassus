@@ -8,6 +8,10 @@ from mock import patch
 
 class TestSqsSendMessage(unittest.TestCase):
 
+    """
+    Tests for sqs_send_message().
+    """
+
     def setUp(self):
         self.patch_logger = patch('crassus.aws_tools.logger')
         self.mock_logger = self.patch_logger.start()
