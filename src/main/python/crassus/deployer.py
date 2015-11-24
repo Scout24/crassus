@@ -98,7 +98,6 @@ class Crassus(object):
                 UsePreviousTemplate=True,
                 Parameters=merged,
                 Capabilities=['CAPABILITY_IAM'],
-                # NotificationARNs=None)
                 NotificationARNs=self.cfn_output_topics)
             message = 'Cloudformation was triggered successfully.'
             logger.debug(message)
