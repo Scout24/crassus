@@ -1,9 +1,9 @@
 import json
 import unittest
 
-from crassus.output_converter import OutputConverter
 from crassus.deployment_response import DeploymentResponse
-from mock import patch, call
+from crassus.output_converter import OutputConverter
+from mock import call, patch
 from utils import load_fixture_json
 
 cfn_event = load_fixture_json('cfn_event.json')

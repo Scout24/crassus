@@ -2,11 +2,10 @@ import unittest
 from textwrap import dedent
 
 from botocore.exceptions import ClientError
-from mock import ANY, Mock, patch, call
-
-from crassus.deployment_response import DeploymentResponse
 from crassus.deployer import (
-    Crassus, NOTIFICATION_SUBJECT, StackUpdateParameter)
+    NOTIFICATION_SUBJECT, Crassus, StackUpdateParameter)
+from crassus.deployment_response import DeploymentResponse
+from mock import ANY, Mock, call, patch
 
 PARAMETER = 'ANY_PARAMETER'
 ARN_ID = 'ANY_ARN'
