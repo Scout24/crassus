@@ -68,11 +68,11 @@ class TestOutputConverter(unittest.TestCase):
         return_value = self.output_converter._parse_sns_message(
             self.event['Records'][0]['Sns']['Message'])
         self.assertEqual(return_value['ResourceStatus'], 'CREATE_IN_PROGRESS')
-        self.assertEqual(return_value['Namespace'], 974200712483)
+        self.assertEqual(return_value['Namespace'], 123456789012)
         self.assertEqual(return_value['ResourceProperties'], {
             'Action': 'lambda:invokeFunction',
             'SourceArn': (
-                'arn:aws:sns:eu-west-1:974200712483:crassus-karolyi-temp1-'
+                'arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-'
                 'cfnOutputSnsTopic-KKF3Y90CS6SA'),
             'FunctionName': (
                 'crassus-karolyi-temp1-cfnOutputConverterFunction-'
