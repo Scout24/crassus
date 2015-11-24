@@ -38,6 +38,7 @@ class CreateStack(threading.Thread):
 
 
 class CrassusIntegrationTest(unittest.TestCase):
+
     def setUp(self):
         fqdn = socket.gethostname()
         hostname = fqdn[:fqdn.find('.')] if '.' in fqdn else fqdn
