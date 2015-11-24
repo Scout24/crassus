@@ -38,6 +38,7 @@ class CreateStack(threading.Thread):
 
 
 class CrassusIntegrationTest(unittest.TestCase):
+
     def setUp(self):
         fqdn = socket.gethostname()
         hostname = fqdn[:fqdn.find('.')] if '.' in fqdn else fqdn
@@ -98,11 +99,11 @@ class CrassusIntegrationTest(unittest.TestCase):
         credentials = self.sts_client.assume_role(
             RoleArn=invoker_role.arn, RoleSessionName='crassus-it')['Credentials']
 
-        ec2 = boto3.client(service_name='ec2', region_name=REGION_NAME,
-                           aws_access_key_id=credentials['AccessKeyId'],
-                           aws_secret_access_key=credentials[
-                               'SecretAccessKey'],
-                           aws_session_token=credentials['SessionToken'])
+        ec2 = boto3.client(
+            service_name='ec2', region_name=REGION_NAME,
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'])
         try:
             ec2.describe_instances()
             self.fail(
