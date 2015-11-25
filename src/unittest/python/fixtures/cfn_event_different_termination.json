@@ -1,20 +1,20 @@
 {
-    "Records": [{
-        "EventVersion": "1.0",
-        "EventSubscriptionArn": "arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA:3c409838-8a68-4d8d-b957-03b3a3042177",
-        "EventSource": "aws:sns",
-        "Sns": {
-            "SignatureVersion": "1",
-            "Timestamp": "2015-11-23T16:53:46.737Z",
-            "Signature": "QxNIXmXG0Gz3+26RcP4rToVuNCbFF9Ir5lq8PsShtQbgFFwJP6YHAA8tSqx4Ho8yGXJE3i3ufRbGS3pM9yCYlrnTDaIsuj/TwI2KUyRYAhmmE0w+DeJieSHnwA3mUtnskzd2W7BxeYzEpCLc6Tbx6zdHYVjEWsNOYcCv0UTrIEWApK7RhgWgp7FzLvXJLhuwY84f9ANS6mcMgu0oXP8kxt+Sf3iP3hVcbZOojit1X7ulF5m4/xu+hnE7/GzfR4YWkaKHIs1a3dNBYRFGU0cesaVRTbyEYW57bGNFxrWBjwUt/Wu6brjIrdZaLst3bBDYb9Uid39O0fbCoQtB8EB4iw==",
-            "SigningCertUrl": "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem",
-            "MessageId": "ab90733f-2374-54e8-9d1a-3df265ae924a",
-            "Message": "StackId='arn:aws:cloudformation:eu-west-1:123456789012:stack/crassus-karolyi-temp1/d1834770-91e8-11e5-98ba-50d5026f660a'\nTimestamp='2015-11-23T16:53:46.443Z'\nEventId='cfnOutputConverterPermission-CREATE_IN_PROGRESS-2015-11-23T16:53:46.443Z'\nLogicalResourceId='cfnOutputConverterPermission'\nNamespace='123456789012'\nPhysicalResourceId='crassus-karolyi-temp1-cfnOutputConverterPermission-R9ZUQEFM5L6G'\nResourceProperties='{\"SourceArn\":\"arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA\",\"Action\":\"lambda:invokeFunction\",\"Principal\":\"sns.amazonaws.com\",\"FunctionName\":\"crassus-karolyi-temp1-cfnOutputConverterFunction-7T8X9HH83YRH\"}\n'\nResourceStatus='CREATE_IN_PROGRESS'\nResourceStatusReason='Resource creation Initiated'\nResourceType='AWS::Lambda::Permission'\nStackName='crassus-karolyi-temp1'",
-            "MessageAttributes": {},
-            "Type": "Notification",
-            "UnsubscribeUrl": "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA:3c409838-8a68-4d8d-b957-03b3a3042177",
-            "TopicArn": "arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA",
-            "Subject": "AWS CloudFormation Notification"
-        }
-    }]
+  "Records": [{
+    "EventVersion": "1.0",
+    "EventSubscriptionArn": "arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA:3c409838-8a68-4d8d-b957-03b3a3042177",
+    "EventSource": "aws:sns",
+    "Sns": {
+      "SignatureVersion": "1",
+      "Timestamp": "2015-11-23T16:53:46.737Z",
+      "Signature": "QxNIXmXG0Gz3+26RcP4rToVuNCbFF9Ir5lq8PsShtQbgFFwJP6YHAA8tSqx4Ho8yGXJE3i3ufRbGS3pM9yCYlrnTDaIsuj/TwI2KUyRYAhmmE0w+DeJieSHnwA3mUtnskzd2W7BxeYzEpCLc6Tbx6zdHYVjEWsNOYcCv0UTrIEWApK7RhgWgp7FzLvXJLhuwY84f9ANS6mcMgu0oXP8kxt+Sf3iP3hVcbZOojit1X7ulF5m4/xu+hnE7/GzfR4YWkaKHIs1a3dNBYRFGU0cesaVRTbyEYW57bGNFxrWBjwUt/Wu6brjIrdZaLst3bBDYb9Uid39O0fbCoQtB8EB4iw==",
+      "SigningCertUrl": "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem",
+      "MessageId": "ab90733f-2374-54e8-9d1a-3df265ae924a",
+      "Message": "StackId='arn:aws:cloudformation:eu-west-1:123456789012:stack/crassus-karolyi-temp1/d1834770-91e8-11e5-98ba-50d5026f660a'\nTimestamp='2015-11-23T16:53:46.443Z'\nEventId='cfnOutputConverterPermission-CREATE_IN_PROGRESS-2015-11-23T16:53:46.443Z'\nLogicalResourceId='cfnOutputConverterPermission'\nNamespace='123456789012'\nPhysicalResourceId='crassus-karolyi-temp1-cfnOutputConverterPermission-R9ZUQEFM5L6G'\nResourceProperties='{\"SourceArn\":\"arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA\",\"Action\":\"lambda:invokeFunction\",\"Principal\":\"sns.amazonaws.com\",\"FunctionName\":\"crassus-karolyi-temp1-cfnOutputConverterFunction-7T8X9HH83YRH\"}\n'\nResourceStatus='CREATE_IN_PROGRESS'\nResourceStatusReason='Resource creation Initiated'\nResourceType='AWS::Lambda::Permission'\nStackName='crassus-karolyi-temp1'",
+      "MessageAttributes": {},
+      "Type": "Notification",
+      "UnsubscribeUrl": "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA:3c409838-8a68-4d8d-b957-03b3a3042177",
+      "TopicArn": "arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-cfnOutputSnsTopic-KKF3Y90CS6SA",
+      "Subject": "AWS CloudFormation Notification"
+    }
+  }]
 }
