@@ -53,7 +53,7 @@ class TestOutputConverter(unittest.TestCase):
 
     def test_cast_type_json(self):
         """
-        _cast_type() should return string if the input is not a valid
+        _cast_type() should return a python type if the input is a valid
         JSON.
         """
         valid_json = '{"foo":"bar"}'
@@ -97,7 +97,9 @@ class TestOutputConverter(unittest.TestCase):
             cfn_event_different_termination['Records'][0]['Sns']['Message'])
         self.assertEqual(return_value['ResourceStatus'], 'CREATE_IN_PROGRESS')
         self.assertEqual(return_value['Namespace'], 123456789012)
+        # All hail the successful parsing, last parameter is StackName!
         self.assertEqual(return_value['StackName'], 'crassus-karolyi-temp1')
+        # ... and the value should NOT have a closing quote.
         self.assertNotEqual(
             return_value['StackName'], 'crassus-karolyi-temp1\'')
         self.assertEqual(return_value['ResourceProperties'], {
@@ -112,7 +114,8 @@ class TestOutputConverter(unittest.TestCase):
 
     def test_converts_correctly(self):
         """
-        convert() should call and initialize the right functions/objects.
+        convert() should call and initialize the right
+        functions/objects.
         """
         self.output_converter.convert()
         self.assertEqual(self.mock_logger.warning.call_count, 0)
@@ -133,9 +136,9 @@ class TestOutputConverter(unittest.TestCase):
         If there is no 'Sns' or 'Message' in the received event list,
         log a warning.
         """
-        self.output_converter.event = {'Records': [{}, {}]}
+        self.output_converter.event = {'Records': [{}, {'foo': 1}]}
         self.output_converter.convert()
         self.assertFalse(self.mock_sqs_send.called)
         self.assertEqual(list(self.mock_logger.warning.call_args_list), [
             call('No \'Sns\' or \'Message\' in received event: {}'),
-            call('No \'Sns\' or \'Message\' in received event: {}')])
+            call('No \'Sns\' or \'Message\' in received event: {\'foo\': 1}')])

@@ -48,9 +48,10 @@ class OutputConverter(object):
 
         Beware: the lines are terminated with "'\n", so they must be
         split up along this pattern. There can be deviations sometimes,
-        thus the workaround.
+        hence the workaround.
 
-        Returns the parsed key-value pairs in a dictionary.
+        Returns the parsed key-value pairs as a dictionary, while trying
+        to JSON sanitize the values.
         """
         splitted_list = sns_message.split(PATTERN_LINESPLITTER)
         # Workaround for when the last parameter is not terminated with
