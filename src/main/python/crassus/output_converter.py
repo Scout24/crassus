@@ -7,6 +7,9 @@ import logging
 from crassus.aws_tools import get_lambda_config_property, sqs_send_message
 from deployment_response import DeploymentResponse
 
+PATTERN_KEYSPLITTER = '=\''
+PATTERN_LINESPLITTER = '\'\n'
+
 logger = logging.getLogger(__name__)
 
 
@@ -49,7 +52,7 @@ class OutputConverter(object):
 
         Returns the parsed key-value pairs in a dictionary.
         """
-        splitted_list = sns_message.split('\'\n')
+        splitted_list = sns_message.split(PATTERN_LINESPLITTER)
         # Workaround for when the last parameter is not terminated with
         # the same separator pattern, then a closing quote might remain.
         if splitted_list[-1] != '' and splitted_list[-1][-1] == '\'':
@@ -58,10 +61,10 @@ class OutputConverter(object):
         result_dict = {}
         for line_item in splitted_list:
             line_item = line_item.strip()
-            if '=\'' not in line_item:
+            if PATTERN_KEYSPLITTER not in line_item:
                 # Unparseable line, do not parse
                 continue
-            key, value = line_item.split('=\'', 1)
+            key, value = line_item.split(PATTERN_KEYSPLITTER, 1)
             result_dict[key] = self._cast_type(value)
         return result_dict
 
