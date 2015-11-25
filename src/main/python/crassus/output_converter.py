@@ -58,10 +58,10 @@ class OutputConverter(object):
         result_dict = {}
         for line_item in splitted_list:
             line_item = line_item.strip()
-            if line_item == '':
-                # Empty line, do not parse
+            if '=\'' not in line_item:
+                # Unparseable line, do not parse
                 continue
-            key, value = line_item.split('=\'')
+            key, value = line_item.split('=\'', 1)
             result_dict[key] = self._cast_type(value)
         return result_dict
 
