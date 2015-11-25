@@ -43,9 +43,9 @@ class OutputConverter(object):
         """
         Parse the received SNS message from cloudformation.
 
-        Beware: the lines are terminated with "'\n", so the must be
-        splitted along this pattern. This pattern is not a strict rule,
-        this the workaround.
+        Beware: the lines are terminated with "'\n", so they must be
+        split up along this pattern. There can be deviations sometimes,
+        thus the workaround.
 
         Returns the parsed key-value pairs in a dictionary.
         """
