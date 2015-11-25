@@ -43,12 +43,18 @@ class OutputConverter(object):
         """
         Parse the received SNS message from cloudformation.
 
-        Beware: the lines are terminated with "\n\'", so the must be
-        splitted along this pattern.
+        Beware: the lines are terminated with "'\n", so the must be
+        splitted along this pattern. This pattern is not a strict rule,
+        this the workaround.
 
         Returns the parsed key-value pairs in a dictionary.
         """
         splitted_list = sns_message.split('\'\n')
+        # Workaround for when the last parameter is not terminated with
+        # the same separator pattern, then a closing quote might remain.
+        if splitted_list[-1] != '' and splitted_list[-1][-1] == '\'':
+            # Cut the last character from the last item
+            splitted_list[-1] = splitted_list[-1][:-1]
         result_dict = {}
         for line_item in splitted_list:
             line_item = line_item.strip()
@@ -56,8 +62,7 @@ class OutputConverter(object):
                 # Empty line, do not parse
                 continue
             key, value = line_item.split('=\'')
-            value = self._cast_type(value)
-            result_dict[key] = value
+            result_dict[key] = self._cast_type(value)
         return result_dict
 
     def convert(self):

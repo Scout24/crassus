@@ -7,6 +7,8 @@ from mock import call, patch
 from utils import load_fixture_json
 
 cfn_event = load_fixture_json('cfn_event.json')
+cfn_event_different_termination = load_fixture_json(
+    'cfn_event_different_termination.json')
 
 
 class TestOutputConverter(unittest.TestCase):
@@ -69,14 +71,43 @@ class TestOutputConverter(unittest.TestCase):
             self.event['Records'][0]['Sns']['Message'])
         self.assertEqual(return_value['ResourceStatus'], 'CREATE_IN_PROGRESS')
         self.assertEqual(return_value['Namespace'], 123456789012)
+        self.assertEqual(return_value['StackName'], 'crassus-karolyi-temp1')
+        self.assertNotEqual(
+            return_value['StackName'], 'crassus-karolyi-temp1garbage')
         self.assertEqual(return_value['ResourceProperties'], {
             'Action': 'lambda:invokeFunction',
-            'SourceArn': (
+            'SourceArn':
                 'arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-'
-                'cfnOutputSnsTopic-KKF3Y90CS6SA'),
-            'FunctionName': (
+                'cfnOutputSnsTopic-KKF3Y90CS6SA',
+            'FunctionName':
                 'crassus-karolyi-temp1-cfnOutputConverterFunction-'
-                '7T8X9HH83YRH'),
+                '7T8X9HH83YRH',
+            'Principal': 'sns.amazonaws.com'})
+
+    def test_different_termination_parsed(self):
+        """
+        Test if the input event is parsed correctly. In this test, the
+        message parameter does not have a "'\n" termination at the end
+        of it, yet the parser parses the last parameter correctly.
+
+        We only check parts of the input event, which implies it was
+        parsed properly.
+        """
+        return_value = self.output_converter._parse_sns_message(
+            cfn_event_different_termination['Records'][0]['Sns']['Message'])
+        self.assertEqual(return_value['ResourceStatus'], 'CREATE_IN_PROGRESS')
+        self.assertEqual(return_value['Namespace'], 123456789012)
+        self.assertEqual(return_value['StackName'], 'crassus-karolyi-temp1')
+        self.assertNotEqual(
+            return_value['StackName'], 'crassus-karolyi-temp1\'')
+        self.assertEqual(return_value['ResourceProperties'], {
+            'Action': 'lambda:invokeFunction',
+            'SourceArn':
+                'arn:aws:sns:eu-west-1:123456789012:crassus-karolyi-temp1-'
+                'cfnOutputSnsTopic-KKF3Y90CS6SA',
+            'FunctionName':
+                'crassus-karolyi-temp1-cfnOutputConverterFunction-'
+                '7T8X9HH83YRH',
             'Principal': 'sns.amazonaws.com'})
 
     def test_converts_correctly(self):
