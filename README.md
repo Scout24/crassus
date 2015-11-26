@@ -37,11 +37,11 @@ Sample event as expected from deployer
         "SigningCertUrl": "<SIGNING URL>",
         "MessageId": "<MESSAGE ID>",
         "Message": "{
-          "version": 1,
-          "stackName": "sample-stack",
-          "region": "eu-west-1",
-          "parameters": {
-            "InstanceType": "t2.micro"
+          \"version\": 1,
+          \"stackName\": \"sample-stack\",
+          \"region\": \"eu-west-1\",
+          \"parameters\": {
+            \"InstanceType\": \"t2.micro\"
           }
         }",
         "MessageAttributes": {
@@ -49,7 +49,7 @@ Sample event as expected from deployer
         "Type": "Notification",
         "UnsubscribeUrl": "<UNSUBSCRIBE URL>",
         "TopicArn": "<TOPIC ARN>",
-        "Subject": None
+        "Subject": "None"
       }
     }
   ]
@@ -74,9 +74,9 @@ application stack.
 ### Steps
 
 1. Create test role which has only permission to use SNS in the current account
-1. Create CRASSUS test stack from latest version, authorize the test role to send update messages 
+1. Create CRASSUS test stack from latest version, authorize the test role to send update messages
 1. Create target application stack
 1. Use the test role to send an update message with an updated stack parameter
 1. Test that the parameter of the target application successfully was successfully updated
-1. If the test was successful, delete the the target application stack, the 
+1. If the test was successful, delete the the target application stack, the
 test role and the CRASSUS test stack
