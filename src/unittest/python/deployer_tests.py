@@ -2,8 +2,7 @@ import unittest
 from textwrap import dedent
 
 from botocore.exceptions import ClientError
-from crassus.deployer import (
-    NOTIFICATION_SUBJECT, Crassus, StackUpdateParameter)
+from crassus.deployer import Crassus, StackUpdateParameter
 from crassus.deployment_response import DeploymentResponse
 from mock import ANY, Mock, call, patch
 
@@ -129,8 +128,7 @@ class TestUpdateStack(unittest.TestCase):
             "version": 1,
             "stackName": "ANY_STACK",
             "region": "ANY_REGION",
-            "parameters":
-                {"KeyOne": "UpdateValueOne"},
+            "parameters": {"KeyOne": "UpdateValueOne"},
         }
 
         self.expected_parameters = [
@@ -299,7 +297,7 @@ class TestOutputTopic(unittest.TestCase):
     def tearDown(self):
         self.patcher.stop()
 
-    @patch('crassus.aws_tools.aws_lambda')
+    @patch('crassus.utils.aws_lambda')
     def test_output_topics_returns_arn_list(self, mock_lambda):
         mock_lambda.get_function_configuration.return_value = {
             'Description': dedent("""
@@ -314,8 +312,8 @@ class TestOutputTopic(unittest.TestCase):
                     "arn:aws:sns:eu-west-1:123456789012:random-topic", ]
         self.assertEqual(expected, topic_list)
 
-    @patch('crassus.aws_tools.aws_lambda')
-    @patch('crassus.aws_tools.logger')
+    @patch('crassus.utils.aws_lambda')
+    @patch('crassus.utils.logger')
     def test_output_topics_handles_value_error(self, logger_mock, mock_lambda):
         mock_lambda.get_function_configuration.return_value = {
             'Description': "NO_SUCH_JSON"
@@ -324,8 +322,8 @@ class TestOutputTopic(unittest.TestCase):
         self.assertEqual(None, topic_list)
         logger_mock.error.assert_called_once_with(ANY)
 
-    @patch('crassus.aws_tools.aws_lambda')
-    @patch('crassus.aws_tools.logger')
+    @patch('crassus.utils.aws_lambda')
+    @patch('crassus.utils.logger')
     def test_output_topics_handles_key_error(self, logger_mock, mock_lambda):
         mock_lambda.get_function_configuration.return_value = {
             'Description': '{"key": "value"}'

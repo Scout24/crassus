@@ -2,15 +2,12 @@
 from __future__ import print_function
 
 import json
-import logging
 
-from crassus.aws_tools import get_lambda_config_property, sqs_send_message
+from crassus.utils import get_lambda_config_property, sqs_send_message, logger
 from deployment_response import DeploymentResponse
 
 PATTERN_KEYSPLITTER = '=\''
 PATTERN_LINESPLITTER = '\'\n'
-
-logger = logging.getLogger(__name__)
 
 
 class OutputConverter(object):

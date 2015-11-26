@@ -1,17 +1,11 @@
 import datetime
 import json
-import logging
 
 import boto3
 from botocore.exceptions import ClientError
-from crassus.aws_tools import get_lambda_config_property, sqs_send_message
+from crassus.utils import get_lambda_config_property, sqs_send_message, logger
 from crassus.deployment_response import DeploymentResponse
 from dateutil import tz
-
-logger = logging.getLogger('crassus-deployer')
-logger.setLevel(logging.DEBUG)
-consoleLogger = logging.StreamHandler()
-logger.addHandler(consoleLogger)
 
 NOTIFICATION_SUBJECT = 'Crassus deployer notification'
 MESSAGE_STACK_NOT_FOUND = 'Stack not found {stack_name}: {message}'
