@@ -25,7 +25,7 @@ def _get_VERSION():
         file_path = os.path.join(actual_dir, 'VERSION')
         try:
             with open(file_path, 'r') as fp:
-                return fp.read()
+                return 'v{0}'.format(fp.read())
         except IOError:
             if os.path.realpath(actual_dir) == '/':
                 # We are at the top level, exit
