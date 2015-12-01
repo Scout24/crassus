@@ -197,6 +197,7 @@ Resources:
               - "SQS:ReceiveMessage"
               - "SQS:DeleteMessage"
               - "SQS:GetQueueUrl"
+              - "SQS:ChangeMessageVisibility"
             Resource:
               Fn::GetAtt:
                 - outputSqsQueue
