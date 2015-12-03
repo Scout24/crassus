@@ -25,16 +25,6 @@ version = VCSRevision().get_git_revision_count()
 default_task = ['clean', 'analyze', 'package']
 
 
-def upload_helper(project, logger, bucket_name, keyname, data):
-    import boto3
-    s3 = boto3.resource('s3')
-    logger.info("Uploading cfn.json to bucket: '{0}' as key: '{1}'".
-                format(bucket_name, keyname))
-    acl = project.get_property('lambda_file_access_control')
-    s3.Bucket(bucket_name).put_object(
-        Key=keyname, Body=data, ACL=acl)
-
-
 @init
 def set_properties(project):
     project.depends_on("boto3")
