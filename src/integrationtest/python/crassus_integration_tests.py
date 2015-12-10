@@ -59,7 +59,7 @@ class CrassusIntegrationTest(unittest.TestCase):
     def tearDown(self):
         self.delete_invoker_role()
         self.delete_stack(self.crassus_stack_name)
-        self.delete_stack_when_update_finished(self.app_stack_name)
+#        self.delete_stack_when_update_finished(self.app_stack_name)
 
     def test_create_stacks_and_update(self):
         invoker_role = self.create_invoker_role()
@@ -97,7 +97,8 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def assume_role(self, invoker_role):
         credentials = self.sts_client.assume_role(
-            RoleArn=invoker_role.arn, RoleSessionName='crassus-it')['Credentials']
+            RoleArn=invoker_role.arn, RoleSessionName='crassus-it')[
+            'Credentials']
 
         ec2 = boto3.client(
             service_name='ec2', region_name=REGION_NAME,
@@ -143,12 +144,11 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
-        sns_client = boto3.client(service_name='sns',
-                                  region_name=REGION_NAME,
-                                  aws_access_key_id=credentials['AccessKeyId'],
-                                  aws_secret_access_key=credentials[
-                                      'SecretAccessKey'],
-                                  aws_session_token=credentials['SessionToken'])
+        sns_client = boto3.client(
+            service_name='sns', region_name=REGION_NAME,
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'])
         message = {
             'version': 1,
             'stackName': self.app_stack_name,
@@ -157,8 +157,8 @@ class CrassusIntegrationTest(unittest.TestCase):
                 'dockerImageVersion': '40'
             }
         }
-        crassus_input_topic_arn = self.get_stack_output(self.crassus_stack_name,
-                                                        'inputSnsTopicARN')
+        crassus_input_topic_arn = self.get_stack_output(
+            self.crassus_stack_name, 'inputSnsTopicARN')
 
         message_id = sns_client.publish(TopicArn=crassus_input_topic_arn,
                                         Message=json.dumps(message))
@@ -190,7 +190,8 @@ class CrassusIntegrationTest(unittest.TestCase):
             'region': REGION_NAME,
             'stacks': {
                 self.app_stack_name: {
-                    'template-url': 's3://is24-python-docker-hello-world-webapp/latest/ecs-minimal-webapp.json',
+                    'template-url': 's3://is24-python-docker-hello-world'
+                    '-webapp/latest/ecs-minimal-webapp.json',
                     'timeout': 1200,
                     'parameters': {
                         'vpcId': vpc_id,
@@ -201,6 +202,7 @@ class CrassusIntegrationTest(unittest.TestCase):
             }
         })
         app_stack_creation = CreateStack('AppCreationThread', app_config)
+        print ('MY APP CONFIG: ', repr(app_config))
         app_stack_creation.start()
         return app_stack_creation
 
@@ -209,7 +211,8 @@ class CrassusIntegrationTest(unittest.TestCase):
             'region': REGION_NAME,
             'stacks': {
                 self.crassus_stack_name: {
-                    'template-url': 's3://crassus-lambda-zips/latest/crassus.json',
+                    'template-url': (
+                        's3://crassus-lambda-zips/latest/crassus.json'),
                     'parameters': {
                         'zipFile': 'latest/crassus.zip',
                         'bucketName': 'crassus-lambda-zips',
@@ -226,8 +229,8 @@ class CrassusIntegrationTest(unittest.TestCase):
     def get_first_vpc_and_subnets(self):
         vpc_id = self.ec2_client.describe_vpcs()['Vpcs'][0]['VpcId']
         subnet_ids = []
-        subnets = self.ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id',
-                                                             'Values': [vpc_id]}])['Subnets']
+        subnets = self.ec2_client.describe_subnets(
+            Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])['Subnets']
         for subnet in subnets:
             subnet_ids.append(subnet['SubnetId'])
         subnet_ids_paramater = ','.join(subnet_ids)
