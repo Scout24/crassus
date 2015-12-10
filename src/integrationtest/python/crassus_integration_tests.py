@@ -58,8 +58,8 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def tearDown(self):
         self.delete_invoker_role()
-        self.delete_stack(self.crassus_stack_name)
-#        self.delete_stack_when_update_finished(self.app_stack_name)
+        # self.delete_stack(self.crassus_stack_name)
+        # self.delete_stack_when_update_finished(self.app_stack_name)
 
     def test_create_stacks_and_update(self):
         invoker_role = self.create_invoker_role()
