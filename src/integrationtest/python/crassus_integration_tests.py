@@ -186,12 +186,13 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def create_app_stack(self):
         subnet_ids, vpc_id = self.get_first_vpc_and_subnets()
-        app_config = Config(config_dict={
+        config_dict = {
             'region': REGION_NAME,
             'stacks': {
                 self.app_stack_name: {
-                    'template-url': 's3://is24-python-docker-hello-world'
-                    '-webapp/latest/ecs-minimal-webapp.json',
+                    'template-url': (
+                        's3://is24-python-docker-hello-world-webapp/latest/'
+                        'ecs-minimal-webapp.json'),
                     'timeout': 1200,
                     'parameters': {
                         'vpcId': vpc_id,
@@ -200,9 +201,10 @@ class CrassusIntegrationTest(unittest.TestCase):
                     }
                 }
             }
-        })
+        }
+        app_config = Config(config_dict=config_dict)
         app_stack_creation = CreateStack('AppCreationThread', app_config)
-        print ('MY APP CONFIG: ', repr(app_config))
+        print ('MY APP CONFIG: ', config_dict)
         app_stack_creation.start()
         return app_stack_creation
 
