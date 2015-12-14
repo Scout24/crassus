@@ -15,4 +15,5 @@ def format_(credentials):
 
 
 if __name__ == "__main__":
-    format_(json.loads(sys.stdin.read())['Credentials'])
+    input_str = sys.stdin.read()
+    format_(json.loads(input_str)['Credentials'])
