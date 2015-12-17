@@ -15,6 +15,9 @@ import boto3
 from botocore.exceptions import ClientError
 from cfn_sphere.config import Config
 from cfn_sphere.main import StackActionHandler
+from gaius.service import (
+    cleanup, notify, receive, credentials_set, credentials_reset,
+    DeploymentErrorException)
 
 REGION_NAME = 'eu-west-1'
 SNS_FULL_ACCESS = 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'
@@ -60,6 +63,7 @@ class CrassusIntegrationTest(unittest.TestCase):
         self.delete_invoker_role()
         self.delete_stack(self.crassus_stack_name)
         self.delete_stack_when_update_finished(self.app_stack_name)
+        credentials_reset()
 
     def test_create_stacks_and_update(self):
         invoker_role = self.create_invoker_role()
@@ -115,26 +119,6 @@ class CrassusIntegrationTest(unittest.TestCase):
 
         return credentials
 
-    def contains_final_message(self, messages):
-        """
-        Check if the passes SQS messages contain the final 'UPDATE_COMPLETE'
-        from Cloudformation for the demo app.
-
-        Return True if yes, delete the messages and return False-ish if
-        not.
-        """
-        for message in messages:
-            json_body = json.loads(message.body)
-            message.delete()
-            stack_name = json_body.get('stackName')
-            res_type = json_body.get('resourceType')
-            status = json_body.get('status')
-            if (stack_name == self.app_stack_name and
-                    res_type == 'AWS::CloudFormation::Stack' and
-                    status == 'UPDATE_COMPLETE'):
-                # Eureka!
-                return True
-
     def wait_success_from_backchannel(self, invoker_role):
         """
         Waits for the cloudformation success message arriving from the
@@ -144,35 +128,22 @@ class CrassusIntegrationTest(unittest.TestCase):
         This means, we read the backchannel (SQS Queue) and wait for a
         'UPDATE_COMPLETE' message from cloudformation.
 
-        Read for 15 minutes, raise error if not found, return if found.
+        Read for 20 minutes (to be on the safe side), raise error if not
+        found, return if found.
         """
-        credentials = self.assume_role(invoker_role)
-        reading_start = datetime.now()
-        sqs_resource = boto3.resource(
-            service_name='sqs', region_name=REGION_NAME,
-            aws_access_key_id=credentials['AccessKeyId'],
-            aws_secret_access_key=credentials['SecretAccessKey'],
-            aws_session_token=credentials['SessionToken'])
         back_channel_url = self.get_stack_output(
             self.crassus_stack_name, 'outputSqsQueue')
-        queue = sqs_resource.Queue(url=back_channel_url)
-        wait_seconds = 15 * 60  # Wait until this many seconds
-        delta_seconds = None
-        logger.info('Start polling queue \'{0}\' for {1} seconds'.format(
-            back_channel_url, wait_seconds))
-        while delta_seconds < wait_seconds:
-            messages = queue.receive_messages(MaxNumberOfMessages=10)
-            if self.contains_final_message(messages):
-                # Final message caught, exit gracefully
-                logger.info('Final CFN message received from SQS queue.')
-                return
-            # No related final message
-            sleep(5)
-            delta_seconds = (datetime.now() - reading_start).seconds
-        # This is reached on a timeout after the while statement
-        self.fail('Final message not received from Cloudformation.')
+        wait_seconds = 20 * 60  # Wait until this many seconds
+        try:
+            receive(
+                back_channel_url, wait_seconds, self.app_stack_name,
+                REGION_NAME)
+        except DeploymentErrorException as e:
+            # Failing with exception
+            self.fail(e)
 
     def assert_update_successful(self):
+        # TODO: replace the for cycle with while that tests against time
         hello_world_url = self.get_stack_output(
             self.app_stack_name, 'WebsiteURL')
         update_successful = False
@@ -202,28 +173,23 @@ class CrassusIntegrationTest(unittest.TestCase):
 
     def send_update_message(self, invoker_role):
         credentials = self.assume_role(invoker_role)
-        sns_client = boto3.client(
-            service_name='sns', region_name=REGION_NAME,
-            aws_access_key_id=credentials['AccessKeyId'],
-            aws_secret_access_key=credentials['SecretAccessKey'],
-            aws_session_token=credentials['SessionToken'])
-        message = {
-            'version': 1,
-            'stackName': self.app_stack_name,
-            'region': REGION_NAME,
-            'parameters': {
-                'dockerImageVersion': '40'
-            }
-        }
+        credentials_set(credentials)
         crassus_input_topic_arn = self.get_stack_output(
             self.crassus_stack_name, 'inputSnsTopicARN')
+        back_channel_url = self.get_stack_output(
+            self.crassus_stack_name, 'outputSqsQueue')
+        run_seconds = 10
+        cleanup(
+            back_channel_url, run_seconds, self.crassus_stack_name,
+            REGION_NAME)
+        result = notify(
+            self.app_stack_name, 'dockerImageVersion=40',
+            crassus_input_topic_arn, REGION_NAME)
 
-        message_id = sns_client.publish(
-            TopicArn=crassus_input_topic_arn, Message=json.dumps(message))
         logger.info(
             'published update message to topic: {0}, message: {1}, got '
             'message_id: {2}'.format(
-                crassus_input_topic_arn, message, message_id
+                crassus_input_topic_arn, 'dockerImageVersion=40', result
             ))
 
     def get_stack_output(self, stack_name, output_name):

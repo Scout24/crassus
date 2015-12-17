@@ -32,6 +32,7 @@ def set_properties(project):
     project.build_depends_on("unittest2")
     project.build_depends_on("mock")
     project.build_depends_on("cfn-sphere")
+    project.build_depends_on("gaius")
     project.set_property('coverage_break_build', False)
     project.set_property(
         'bucket_name', os.environ.get('BUCKET_NAME_FOR_UPLOAD'))
