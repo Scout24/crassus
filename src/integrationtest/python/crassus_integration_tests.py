@@ -14,7 +14,7 @@ from time import sleep
 import boto3
 from botocore.exceptions import ClientError
 from cfn_sphere.stack_configuration import Config
-from cfn_sphere.main import StackActionHandler
+from cfn_sphere import StackActionHandler
 from gaius.service import (
     cleanup, notify, receive, credentials_set, credentials_reset,
     DeploymentErrorException)
