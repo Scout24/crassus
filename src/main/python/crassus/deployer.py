@@ -130,7 +130,8 @@ class StackUpdateParameter(dict):
                     merged_stack_parameters.append(update_parameter)
                 else:
                     stack_parameter['UsePreviousValue'] = True
-                    del stack_parameter['ParameterValue']
+                    if stack_parameter.get('ParameterValue'):
+                        del stack_parameter['ParameterValue']
                     merged_stack_parameters.append(stack_parameter)
 
         return merged_stack_parameters
