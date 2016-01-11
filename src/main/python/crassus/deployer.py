@@ -85,7 +85,9 @@ class Crassus(object):
             self.notify(DeploymentResponse.STATUS_FAILURE, error.message)
 
     def update(self):
+        logger.debug('Parameters to be updated: %s', self.stack.parameters)
         merged = self.stack_update_parameters.merge(self.stack.parameters)
+        logger.debug('Merged parameters: %s', merged)
         try:
             logger.debug('Will try to update Cloudformation')
             self.stack.update(
