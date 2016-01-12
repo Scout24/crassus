@@ -326,7 +326,8 @@ class TestStackUpdateParameters(unittest.TestCase):
             'UsePreviousValue': True
         }]
         result = sup.merge(original_parameters)
-        self.assertEqual(result, expected_output)
+
+        self.assertListEqual(result, expected_output)
 
 
 class TestOutputTopic(unittest.TestCase):
