@@ -123,24 +123,29 @@ class StackUpdateParameter(dict):
 
     def merge(self, stack_parameters):
         merged_stack_parameters = []
-        update_parameters = self.to_aws_format()
 
-        for stack_parameter in stack_parameters:
-            stack_param_key = stack_parameter.get('ParameterKey')
-            stack_param_val = stack_parameter.get('ParameterValue')
-            for update_parameter in update_parameters:
-                is_handled = False
-                update_param_key = update_parameter.get('ParameterKey')
-                update_param_val = update_parameter.get('ParameterValue')
-                if update_param_key == stack_param_key and \
-                        update_param_val != stack_param_val:
-                    is_handled = True
-                    stack_parameter['ParameterValue'] = update_param_val
-                    merged_stack_parameters.append(stack_parameter)
-                    break
-            if not is_handled:
-                stack_parameter['UsePreviousValue'] = True
-                del stack_parameter['ParameterValue']
-                merged_stack_parameters.append(stack_parameter)
+        for update_key in self:
+            update_value = self[update_key]
+            filtered_list = filter(
+                lambda x: x.get('ParameterKey') == update_key,
+                stack_parameters)
+            if not filtered_list:
+                # No such parameter in stack parameters
+                continue
+            if filtered_list[0].get('ParameterValue') != update_value:
+                merged_stack_parameters.append({
+                    'ParameterKey': update_key,
+                    'ParameterValue': update_value})
+                stack_parameters = filter(
+                    lambda x: x.get('ParameterKey') != update_key,
+                    stack_parameters)
+
+        # Turn all remaining key-values to UsePreviousValue = True
+        stack_parameters = map(
+            lambda x: {
+                'ParameterKey': x.get('ParameterKey'),
+                'UsePreviousValue': True},
+            stack_parameters)
+        merged_stack_parameters.extend(stack_parameters)
 
         return merged_stack_parameters

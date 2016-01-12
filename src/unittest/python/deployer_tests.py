@@ -273,16 +273,60 @@ class TestStackUpdateParameters(unittest.TestCase):
                 "PARAMETER2": "UPDATED_VALUE2",
             }
         }
-        expected_output = [{"ParameterKey": "PARAMETER1",
-                            "UsePreviousValue": True},
-                           {"ParameterKey": "PARAMETER2",
-                            "ParameterValue": "UPDATED_VALUE2"}]
+        expected_output = [{"ParameterKey": "PARAMETER2",
+                            "ParameterValue": "UPDATED_VALUE2"},
+                           {"ParameterKey": "PARAMETER1",
+                            "UsePreviousValue": True}]
         stack_parameter = [{"ParameterKey": "PARAMETER1",
                             "ParameterValue": "VALUE1"},
                            {"ParameterKey": "PARAMETER2",
                             "ParameterValue": "VALUE2"}]
         sup = StackUpdateParameter(input_message)
         self.assertEqual(sup.merge(stack_parameter), expected_output)
+
+    def test_merge_many_parameters(self):
+        """
+        Test that merging with many parameters work.
+        """
+        sup = StackUpdateParameter({
+            'parameters': {
+                'param1': 'value1change',
+                'param2': 'value2-no-change',
+                'param3': 'value3change',
+                'paramx': 'value-x-not-existing'},
+            'version': 1,
+            'stackName': 'bla',
+            'region': 'eu-west-1'})
+
+        original_parameters = [{
+            'ParameterKey': 'param1',
+            'ParameterValue': 'value1-to-be-changed'
+        }, {
+            'ParameterKey': 'param2',
+            'ParameterValue': 'value2-no-change'
+        }, {
+            'ParameterKey': 'param3',
+            'ParameterValue': 'value3-to-be-changed'
+        }, {
+            'ParameterKey': 'param4',
+            'ParameterValue': 'value4-not-updated'
+        }]
+
+        expected_output = [{
+            'ParameterKey': 'param3',
+            'ParameterValue': 'value3change'
+        }, {
+            'ParameterKey': 'param1',
+            'ParameterValue': 'value1change'
+        }, {
+            'ParameterKey': 'param2',
+            'UsePreviousValue': True
+        }, {
+            'ParameterKey': 'param4',
+            'UsePreviousValue': True
+        }]
+        result = sup.merge(original_parameters)
+        self.assertEqual(result, expected_output)
 
 
 class TestOutputTopic(unittest.TestCase):
