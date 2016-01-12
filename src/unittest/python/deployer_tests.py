@@ -327,7 +327,7 @@ class TestStackUpdateParameters(unittest.TestCase):
         }]
         result = sup.merge(original_parameters)
 
-        self.assertListEqual(result, expected_output)
+        self.assertItemsEqual(result, expected_output)
 
 
 class TestOutputTopic(unittest.TestCase):
