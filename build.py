@@ -64,34 +64,6 @@ def set_properties_for_teamcity_builds(project):
     project.set_property('teamcity_output', True)
     project.set_property('teamcity_parameter', 'crassus_filename')
 
-    # project.version = '%s-%s' % (project.version,
-    #                              os.environ.get('BUILD_NUMBER', 0))
-    project.default_task = [
-        'clean',
-        'install_build_dependencies',
-        'publish',
-        'package_lambda_code',
-        'upload_zip_to_s3',
-        'upload_cfn_to_s3',
-    ]
-    project.set_property('install_dependencies_index_url',
-                         os.environ.get('PYPIPROXY_URL'))
-
-
-@init(environments='backchannel_temp')
-def set_properties_for_backchannel_builds(project):
-    # For upload_zip_to_s3
-    project.set_property('bucket_prefix', 'backchannel_')
-    # For upload_cfn_to_s3
-    project.set_property('template_key_prefix', 'backchannel_')
-    project.set_property('template_files', [
-        ('cfn-sphere/templates', 'crassus.yaml'),
-    ])
-
-    project.version = '%s-%s' % (
-        project.version, os.environ.get('BUILD_NUMBER', 0))
-    project.set_property('bucket_name', 'crassus-lambda-zips')
-    project.set_property('lambda_file_access_control', 'public-read')
     project.default_task = [
         'clean',
         'install_build_dependencies',
