@@ -28,7 +28,7 @@ Parameters:
     Type: String
     Default: crassus-latest.zip
   triggeringUserArn:
-    AllowedPattern: arn:aws:iam::[0-9]{12}:[\S]+
+    AllowedPattern: 'arn:aws:iam::[0-9]{12}:[\S]+'
     ConstraintDescription: must be a valid Amazon Resource Name e.g. arn:aws:iam::123456789012:role/cld-chain
     Description: ARN of the principal that is allowed to send stack update messages and listen for results
     Type: String
@@ -78,7 +78,6 @@ Resources:
           Effect: Allow
           Principal:
             Service: lambda.amazonaws.com
-          Sid: ''
         Version: '2012-10-17'
       Policies:
       - PolicyDocument:
