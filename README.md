@@ -2,6 +2,8 @@
 [![Code Health](https://landscape.io/github/ImmobilienScout24/crassus/master/landscape.svg?style=flat)](https://landscape.io/github/ImmobilienScout24/crassus/master)
 [![Coverage Status](https://coveralls.io/repos/ImmobilienScout24/crassus/badge.svg?branch=master&service=github)](https://coveralls.io/github/ImmobilienScout24/crassus?branch=master)
 
+# This project is DEPRECATED and not any longer supported
+
 # crassus
 Cross Account Smart Software Update Service
 
